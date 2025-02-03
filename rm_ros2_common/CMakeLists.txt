@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.5)
-project(rm_common)
+cmake_minimum_required(VERSION 3.8)
+project(rm_ros2_common)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -15,11 +15,28 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# find dependencies
+set(CONTROLLER_INCLUDE_DEPENDS
+        rclcpp
+        pluginlib
+        controller_interface
+        realtime_tools
+        angles
+        nav_msgs
+        rm_ros2_msgs
+        control_toolbox
+)
+
+# Find dependencies
 find_package(ament_cmake REQUIRED)
-# uncomment the following section in order to fill in
-# further dependencies manually.
-# find_package(<dependency> REQUIRED)
+foreach (Dependency IN ITEMS ${CONTROLLER_INCLUDE_DEPENDS})
+  find_package(${Dependency} REQUIRED)
+endforeach ()
+
+# INSTALL
+install(
+        DIRECTORY include/
+        DESTINATION include
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -32,4 +49,9 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+## EXPORTS
+ament_export_include_directories(
+        include
+)
+ament_export_dependencies(${CONTROLLER_INCLUDE_DEPENDS})
 ament_package()
