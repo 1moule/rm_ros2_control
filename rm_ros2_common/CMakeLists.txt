@@ -17,20 +17,18 @@ endif()
 
 set(CONTROLLER_INCLUDE_DEPENDS
         rclcpp
-        pluginlib
-        controller_interface
-        realtime_tools
-        angles
-        nav_msgs
-        rm_ros2_msgs
-        control_toolbox
+        tf2
+        geometry_msgs
 )
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(Eigen3 REQUIRED)
 foreach (Dependency IN ITEMS ${CONTROLLER_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach ()
+
+include_directories(${Eigen3_INCLUDE_DIRS})
 
 # INSTALL
 install(

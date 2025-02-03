@@ -38,7 +38,7 @@
 #include <cmath>
 #include <cstring>
 
-#include <rm_ros2_common/math_utilities.hpp>
+#include <rm_ros2_common/math_tools.hpp>
 
 template <typename T>
 class Filter
