@@ -40,20 +40,21 @@
 #include <utility>
 
 #include <tf2_ros/transform_listener.h>
-#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/buffer.h>
+#include <tf2_msgs/msg/tf_message.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <realtime_tools/realtime_publisher.hpp>
+#include <rclcpp/rclcpp.hpp>
 
-class RobotStateHandle: public rclcpp::Node
+class TfHandler: public rclcpp::Node
 {
 public:
-  RobotStateHandle(): Node("ttff"){
+  TfHandler(std::string name): Node(name+"_robot_state"){
     tf_buffer_ =
   std::make_unique<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ =
       std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   }
-
   geometry_msgs::msg::TransformStamped lookupTransform(const std::string& target_frame, const std::string& source_frame,
                                                   const rclcpp::Time& time)
   {
@@ -63,13 +64,11 @@ public:
   {
     return tf_buffer_->lookupTransform(target_frame, source_frame, tf2::TimePointZero);
   }
-
   bool setTransform(const geometry_msgs::msg::TransformStamped& transform, const std::string& authority,
                     bool is_static = false) const
   {
     return tf_buffer_->setTransform(transform, authority, is_static);
   }
-
   bool setTransform(const std::vector<geometry_msgs::msg::TransformStamped>& transforms, const std::string& authority,
                     bool is_static = false) const
   {
@@ -81,4 +80,34 @@ public:
 private:
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+};
+
+class TfRtBroadcaster:public rclcpp::Node
+{
+public:
+  TfRtBroadcaster(std::string name):Node(name+"tf_broadcaster"){
+    pub_=create_publisher<tf2_msgs::msg::TFMessage>("/tf", rclcpp::SystemDefaultsQoS());
+    realtime_pub_=std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
+  }
+  virtual void sendTransform(const geometry_msgs::msg::TransformStamped& transform){
+    std::vector<geometry_msgs::msg::TransformStamped> v1;
+    v1.push_back(transform);
+    sendTransform(v1);
+  }
+  virtual void sendTransform(const std::vector<geometry_msgs::msg::TransformStamped>& transforms){
+    tf2_msgs::msg::TFMessage message;
+    for (const auto& transform : transforms)
+    {
+      message.transforms.push_back(transform);
+    }
+    if (realtime_pub_->trylock())
+    {
+      realtime_pub_->msg_ = message;
+      realtime_pub_->unlockAndPublish();
+    }
+  }
+
+protected:
+  std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>> realtime_pub_{};
+  std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> pub_;
 };
