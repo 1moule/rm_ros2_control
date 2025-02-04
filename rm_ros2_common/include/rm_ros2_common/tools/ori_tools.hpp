@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include "rm_ros2_common/math_tools.hpp"
+#include "rm_ros2_common/tools/math_tools.hpp"
 #include <geometry_msgs/msg/quaternion.hpp>
 
 /*!
