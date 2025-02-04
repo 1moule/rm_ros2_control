@@ -19,6 +19,7 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/ChassisCmd.msg"
+        "msg/GimbalCmd.msg"
         DEPENDENCIES geometry_msgs std_msgs builtin_interfaces# Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
 )
 

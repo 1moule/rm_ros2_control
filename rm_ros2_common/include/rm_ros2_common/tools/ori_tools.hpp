@@ -39,6 +39,7 @@
 
 #include "rm_ros2_common/tools/math_tools.hpp"
 #include <geometry_msgs/msg/quaternion.hpp>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 
 /*!
  * Convert a quaternion to RPY.  Uses ZYX order (yaw-pitch-roll), but returns
@@ -49,4 +50,10 @@ inline void quatToRPY(const geometry_msgs::msg::Quaternion& q, double& roll, dou
     yaw = std::atan2(2 * (q.x * q.y + q.w * q.z), square(q.w) + square(q.x) - square(q.y) - square(q.z));
     pitch = std::asin(as);
     roll = std::atan2(2 * (q.y * q.z + q.w * q.x), square(q.w) - square(q.x) - square(q.y) + square(q.z));
+}
+
+inline void createQuaternionMsgFromRollPitchYaw(geometry_msgs::msg::Quaternion& q,double roll,double pitch,double yaw){
+    tf2::Quaternion tf2_quat;
+    tf2_quat.setRPY(roll, pitch, yaw);
+    q = tf2::toMsg(tf2_quat);
 }
