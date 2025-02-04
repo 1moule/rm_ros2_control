@@ -49,7 +49,7 @@
 class TfHandler: public rclcpp::Node
 {
 public:
-  TfHandler(std::string name): Node(name+"_robot_state"){
+  TfHandler(std::string name): Node(name){
     tf_buffer_ =
   std::make_unique<tf2_ros::Buffer>(this->get_clock());
     tf_listener_ =
@@ -85,7 +85,7 @@ private:
 class TfRtBroadcaster:public rclcpp::Node
 {
 public:
-  TfRtBroadcaster(std::string name):Node(name+"tf_broadcaster"){
+  TfRtBroadcaster(std::string name):Node(name){
     pub_=create_publisher<tf2_msgs::msg::TFMessage>("/tf", rclcpp::SystemDefaultsQoS());
     realtime_pub_=std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
   }
