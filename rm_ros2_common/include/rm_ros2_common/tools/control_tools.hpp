@@ -78,7 +78,7 @@ private:
       rcl_interfaces::msg::SetParametersResult result;
       result.successful = true;
       bool changed = false;
-      double i_min,i_max;
+      double i_min{}, i_max{};
       for (auto & parameter : parameters) {
         const std::string param_name = parameter.get_name();
         try {
