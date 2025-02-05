@@ -19,6 +19,7 @@ set(CONTROLLER_INCLUDE_DEPENDS
         rclcpp
         tf2
         geometry_msgs
+        realtime_tools
 )
 
 # Find dependencies
