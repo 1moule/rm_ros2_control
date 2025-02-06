@@ -44,14 +44,14 @@
 #include <tf2_msgs/msg/tf_message.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
-#include <rclcpp/rclcpp.hpp>
+#include <rclcpp_lifecycle/lifecycle_node.hpp>
 
-class TfHandler: public rclcpp::Node
+class TfHandler
 {
 public:
-  TfHandler(std::string name): Node(name){
+  TfHandler(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr){
     tf_buffer_ =
-  std::make_unique<tf2_ros::Buffer>(this->get_clock());
+  std::make_unique<tf2_ros::Buffer>(node_ptr->get_clock());
     tf_listener_ =
       std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   }
@@ -82,11 +82,11 @@ private:
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 };
 
-class TfRtBroadcaster:public rclcpp::Node
+class TfRtBroadcaster
 {
 public:
-  TfRtBroadcaster(std::string name):Node(name){
-    pub_=create_publisher<tf2_msgs::msg::TFMessage>("/tf", rclcpp::SystemDefaultsQoS());
+  TfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr){
+    pub_=node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf", rclcpp::SystemDefaultsQoS());
     realtime_pub_=std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
   }
   virtual void sendTransform(const geometry_msgs::msg::TransformStamped& transform){
@@ -110,4 +110,43 @@ public:
 protected:
   std::shared_ptr<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>> realtime_pub_{};
   std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> pub_;
+};
+
+class StaticTfRtBroadcaster : public TfRtBroadcaster
+{
+public:
+  StaticTfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr):TfRtBroadcaster(node_ptr){
+    pub_=node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf_static", rclcpp::SystemDefaultsQoS());
+    realtime_pub_=std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
+  }
+  void sendTransform(const geometry_msgs::msg::TransformStamped& transform) override{
+    std::vector<geometry_msgs::msg::TransformStamped> v1;
+    v1.push_back(transform);
+    sendTransform(v1);
+  }
+  void sendTransform(const std::vector<geometry_msgs::msg::TransformStamped>& transforms) override{
+    for (const auto& transform : transforms)
+    {
+      bool match_found = false;
+      for (auto& it_msg : net_message_.transforms)
+      {
+        if (transform.child_frame_id == it_msg.child_frame_id)
+        {
+          it_msg = transform;
+          match_found = true;
+          break;
+        }
+      }
+      if (!match_found)
+        net_message_.transforms.push_back(transform);
+    }
+    if (realtime_pub_->trylock())
+    {
+      realtime_pub_->msg_ = net_message_;
+      realtime_pub_->unlockAndPublish();
+    }
+  }
+
+private:
+  tf2_msgs::msg::TFMessage net_message_{};
 };
