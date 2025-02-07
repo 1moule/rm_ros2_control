@@ -84,6 +84,10 @@ public:
       tf_buffer_->setTransform(transform, authority, is_static);
     return true;
   }
+  void clear()
+  {
+    tf_buffer_->clear();
+  }
 
 private:
   std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr_;
