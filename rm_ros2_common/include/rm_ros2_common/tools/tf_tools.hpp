@@ -49,7 +49,7 @@
 class TfHandler
 {
 public:
-  TfHandler(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr){
+  TfHandler(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr):node_ptr_(node_ptr){
     tf_buffer_ =
   std::make_unique<tf2_ros::Buffer>(node_ptr->get_clock());
     tf_listener_ =
@@ -58,7 +58,15 @@ public:
   geometry_msgs::msg::TransformStamped lookupTransform(const std::string& target_frame, const std::string& source_frame,
                                                   const rclcpp::Time& time)
   {
-    return tf_buffer_->lookupTransform(target_frame, source_frame, time);
+    auto time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>(
+    std::chrono::nanoseconds(time.nanoseconds()));
+    if(time_point > tf2::TimePointZero)
+    {
+      RCLCPP_WARN_THROTTLE(node_ptr_->get_logger(), *node_ptr_->get_clock(), 1000, "Time is not greater than zero. Using default time.");
+      return lookupTransform(target_frame, source_frame);
+    }
+    else
+      return tf_buffer_->lookupTransform(target_frame, source_frame, time);
   }
   geometry_msgs::msg::TransformStamped lookupTransform(const std::string& target_frame, const std::string& source_frame)
   {
@@ -78,6 +86,7 @@ public:
   }
 
 private:
+  std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 };
