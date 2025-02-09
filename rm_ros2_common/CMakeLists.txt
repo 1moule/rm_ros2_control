@@ -17,8 +17,8 @@ endif ()
 
 set(CONTROLLER_INCLUDE_DEPENDS
         rclcpp
-        tf2
-        geometry_msgs
+        tf2_ros
+        tf2_geometry_msgs
         realtime_tools
 )
 
