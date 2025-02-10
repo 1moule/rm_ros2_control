@@ -24,7 +24,7 @@ class TargetSelector
 public:
   TargetSelector() = default;
   void reset(geometry_msgs::msg::Point pos, geometry_msgs::msg::Vector3 vel, double bullet_speed, double yaw,
-             double v_yaw, double r1, double r2, double dz, int id)
+             double v_yaw, double r1, double r2, double dz, double resistance_coff, int id)
   {
     pos_ = pos;
     vel_ = vel;
@@ -34,6 +34,7 @@ public:
     r1_ = r1;
     r2_ = r2;
     dz_ = dz;
+    resistance_coff_ = resistance_coff;
     id_ = id;
   }
   [[nodiscard]] int getTarget() const
@@ -51,7 +52,7 @@ public:
 private:
   geometry_msgs::msg::Point pos_;
   geometry_msgs::msg::Vector3 vel_;
-  double bullet_speed_{}, yaw_{}, v_yaw_{}, r1_{}, r2_{}, dz_{};
+  double bullet_speed_{}, yaw_{}, v_yaw_{}, r1_{}, r2_{}, dz_{}, resistance_coff_{};
   int id_{};
 };
 }  // namespace bullet_solver

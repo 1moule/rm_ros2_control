@@ -18,7 +18,9 @@ BulletSolver::BulletSolver(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node
 void BulletSolver::selectTarget(geometry_msgs::msg::Point pos, geometry_msgs::msg::Vector3 vel, double bullet_speed,
                                 double yaw, double v_yaw, double r1, double r2, double dz, int id)
 {
-  target_selector_->reset(pos, vel, bullet_speed, yaw, v_yaw, r1, r2, dz, id);
+  bullet_speed_ = bullet_speed;
+  resistance_coff_ = getResistanceCoefficient(bullet_speed_) != 0 ? getResistanceCoefficient(bullet_speed_) : 0.001;
+  target_selector_->reset(pos, vel, bullet_speed, yaw, v_yaw, r1, r2, dz, resistance_coff_, id);
   if (target_selector_->getTarget() == WINDMILL)
     target_kinematics_ = std::make_shared<TrackedArmorKinematic>(pos, vel, yaw, v_yaw, r1);
   else
@@ -31,18 +33,23 @@ void BulletSolver::selectTarget(geometry_msgs::msg::Point pos, geometry_msgs::ms
         break;
       case BACK:
         r = r1;
+        yaw += M_PI;
         break;
       case LEFT:
         r = r2;
+        yaw -= M_PI / 2;
+        pos.z += dz;
         break;
       case RIGHT:
         r = r2;
+        yaw += M_PI / 2;
+        pos.z += dz;
         break;
       default:
         r = r1;
         break;
     }
-    if (std::abs(v_yaw) < max_track_target_vel_)
+    if (std::abs(v_yaw) < config_.max_track_target_vel_)
       target_kinematics_ = std::make_shared<TrackedArmorKinematic>(pos, vel, yaw, v_yaw, r);
     else
       target_kinematics_ = std::make_shared<UntrackedArmorKinematic>(pos, vel, yaw, v_yaw, r);
