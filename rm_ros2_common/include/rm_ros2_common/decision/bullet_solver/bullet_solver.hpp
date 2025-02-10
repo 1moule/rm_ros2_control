@@ -8,7 +8,7 @@
 #include <realtime_tools/realtime_publisher.hpp>
 #include <realtime_tools/realtime_buffer.hpp>
 #include <rm_ros2_common/decision/bullet_solver/target_kinematics.hpp>
-#include <rm_ros2_common/decision/bullet_solver/target_selecter.hpp>
+#include <rm_ros2_common/decision/bullet_solver/target_selector.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 // #include <visualization_msgs/Marker.h>
 // #include <rm_msgs/TrackData.h>
@@ -24,17 +24,17 @@ class BulletSolver
 {
 public:
   explicit BulletSolver(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr);
+  [[nodiscard]] double getResistanceCoefficient(double bullet_speed) const;
   void selectTarget(geometry_msgs::msg::Point pos, geometry_msgs::msg::Vector3 vel, double bullet_speed, double yaw,
                     double v_yaw, double r1, double r2, double dz, int id);
   bool solve();
   //  double getGimbalError(geometry_msgs::Point pos, geometry_msgs::Vector3 vel, double yaw, double v_yaw, double r1,
   //                        double r2, double dz, int armors_num, double yaw_real, double pitch_real, double bullet_speed);
-  double getResistanceCoefficient(double bullet_speed);
-  double getYaw() const
+  [[nodiscard]] double getYaw() const
   {
     return output_yaw_;
   }
-  double getPitch() const
+  [[nodiscard]] double getPitch() const
   {
     return -output_pitch_;
   }

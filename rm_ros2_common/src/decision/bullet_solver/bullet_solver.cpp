@@ -15,6 +15,16 @@ BulletSolver::BulletSolver(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node
   target_selector_ = std::make_shared<TargetSelector>();
 }
 
+double BulletSolver::getResistanceCoefficient(const double bullet_speed) const
+{
+  double resistance_coff;
+  if (bullet_speed <= 16)
+    resistance_coff = config_.resistance_coff_qd_16;
+  else
+    resistance_coff = config_.resistance_coff_qd_25;
+  return resistance_coff;
+}
+
 void BulletSolver::selectTarget(geometry_msgs::msg::Point pos, geometry_msgs::msg::Vector3 vel, double bullet_speed,
                                 double yaw, double v_yaw, double r1, double r2, double dz, int id)
 {
