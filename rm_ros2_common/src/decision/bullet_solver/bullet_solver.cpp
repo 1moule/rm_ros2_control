@@ -9,6 +9,7 @@ namespace bullet_solver
 BulletSolver::BulletSolver(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr) : node_ptr_(std::move(node_ptr))
 {
   config_.g = node_ptr_->get_parameter("bullet_solver.g").get_value<double>();
+  config_.max_track_target_vel_ = node_ptr_->get_parameter("bullet_solver.max_track_target_vel").get_value<double>();
   config_.resistance_coff_qd_16 = node_ptr_->get_parameter("bullet_solver.resistance_coff_qd_16").get_value<double>();
   config_.resistance_coff_qd_25 = node_ptr_->get_parameter("bullet_solver.resistance_coff_qd_25").get_value<double>();
 
