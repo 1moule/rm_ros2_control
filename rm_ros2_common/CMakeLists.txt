@@ -29,22 +29,22 @@ find_package(Eigen3 REQUIRED)
 foreach (Dependency IN ITEMS ${CONTROLLER_INCLUDE_DEPENDS})
     find_package(${Dependency} REQUIRED)
 endforeach ()
-add_library(bullet_solver SHARED
+add_library(${PROJECT_NAME} SHARED
         src/decision/bullet_solver/bullet_solver.cpp
 )
-target_include_directories(bullet_solver PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-ament_target_dependencies(bullet_solver PUBLIC ${CONTROLLER_INCLUDE_DEPENDS})
+ament_target_dependencies(${PROJECT_NAME} PUBLIC ${CONTROLLER_INCLUDE_DEPENDS})
 
 # INSTALL
 install(
         DIRECTORY include/
         DESTINATION include
 )
-install(TARGETS bullet_solver
-        EXPORT export_bullet_solver
+install(TARGETS ${PROJECT_NAME}
+        EXPORT export_${PROJECT_NAME}
         ARCHIVE DESTINATION lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
@@ -65,7 +65,7 @@ ament_export_include_directories(
         include
         ${Eigen3_INCLUDE_DIRS}
 )
-ament_export_targets(export_bullet_solver HAS_LIBRARY_TARGET)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
         ${CONTROLLER_INCLUDE_DEPENDS}
         Eigen3
