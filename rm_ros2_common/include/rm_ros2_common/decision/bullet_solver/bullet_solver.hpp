@@ -30,6 +30,8 @@ public:
   bool solve();
   //  double getGimbalError(geometry_msgs::Point pos, geometry_msgs::Vector3 vel, double yaw, double v_yaw, double r1,
   //                        double r2, double dz, int armors_num, double yaw_real, double pitch_real, double bullet_speed);
+  void getYawVelDes(double& vel_des) const;
+  void getPitchVelDes(double& vel_des) const;
   [[nodiscard]] double getYaw() const
   {
     return output_yaw_;

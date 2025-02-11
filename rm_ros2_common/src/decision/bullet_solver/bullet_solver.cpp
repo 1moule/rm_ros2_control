@@ -100,4 +100,36 @@ bool BulletSolver::solve()
   }
   return true;
 }
+
+void BulletSolver::getYawVelDes(double& vel_des) const
+{
+  const geometry_msgs::msg::Vector3 target_vel = target_kinematics_->velocity(fly_time_);
+  const double yaw_vel_des =
+      (target_pos_.x * target_vel.y - target_pos_.y * target_vel.x) / (pow(target_pos_.x, 2) + pow(target_pos_.y, 2));
+  vel_des = yaw_vel_des;
+}
+
+void BulletSolver::getPitchVelDes(double& vel_des) const
+{
+  constexpr double dt = 0.01;
+  const geometry_msgs::msg::Point pos = target_kinematics_->position(fly_time_ + dt);
+  const double target_rho = std::sqrt(std::pow(pos.x, 2) + std::pow(pos.y, 2));
+  double temp_z = target_rho * tan(output_pitch_);
+  double output_pitch_next = output_pitch_;
+  double error_z = 999;
+  while (std::abs(error_z) >= 1e-9)
+  {
+    output_pitch_next = std::atan2(temp_z, target_rho);
+    const double fly_time =
+        (-std::log(1 - target_rho * resistance_coff_ / (bullet_speed_ * std::cos(output_pitch_next)))) /
+        resistance_coff_;
+    const double real_z = (bullet_speed_ * std::sin(output_pitch_next) + (config_.g / resistance_coff_)) *
+                              (1 - std::exp(-resistance_coff_ * fly_time)) / resistance_coff_ -
+                          config_.g * fly_time / resistance_coff_;
+    error_z = pos.z - real_z;
+    temp_z += error_z;
+  }
+  const double pitch_vel_des = (output_pitch_next - output_pitch_) / dt;
+  vel_des = pitch_vel_des;
+}
 }  // namespace bullet_solver
