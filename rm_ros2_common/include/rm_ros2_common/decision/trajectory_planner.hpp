@@ -5,7 +5,6 @@
 #pragma once
 
 #include <cmath>
-#include <string>
 
 template <typename T>
 class NonlinearTrackingDifferentiator

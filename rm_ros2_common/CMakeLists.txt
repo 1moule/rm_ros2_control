@@ -30,7 +30,12 @@ find_package(Eigen3 REQUIRED)
 foreach (Dependency IN ITEMS ${CONTROLLER_INCLUDE_DEPENDS})
     find_package(${Dependency} REQUIRED)
 endforeach ()
+file(GLOB FILTERS "include/rm_ros2_common/filters/*")
+file(GLOB TOOLS "include/rm_ros2_common/tools/*")
 add_library(${PROJECT_NAME} SHARED
+        ${FILTERS}
+        ${TOOLS}
+        include/rm_ros2_common/decision/trajectory_planner.hpp
         src/decision/bullet_solver/bullet_solver.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
