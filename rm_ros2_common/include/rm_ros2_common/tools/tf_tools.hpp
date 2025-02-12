@@ -48,13 +48,13 @@
 class TfHandler
 {
 public:
-  TfHandler(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr) : node_ptr_(node_ptr)
+  explicit TfHandler(const std::shared_ptr<rclcpp_lifecycle::LifecycleNode>& node_ptr) : node_ptr_(node_ptr)
   {
     tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node_ptr->get_clock());
     tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   }
   geometry_msgs::msg::TransformStamped lookupTransform(const std::string& target_frame, const std::string& source_frame,
-                                                       const rclcpp::Time& time)
+                                                       const rclcpp::Time& time) const
   {
     auto time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>(
         std::chrono::nanoseconds(time.nanoseconds()));
@@ -67,7 +67,8 @@ public:
     else
       return tf_buffer_->lookupTransform(target_frame, source_frame, time);
   }
-  geometry_msgs::msg::TransformStamped lookupTransform(const std::string& target_frame, const std::string& source_frame)
+  geometry_msgs::msg::TransformStamped lookupTransform(const std::string& target_frame,
+                                                       const std::string& source_frame) const
   {
     return tf_buffer_->lookupTransform(target_frame, source_frame, tf2::TimePointZero);
   }
@@ -83,7 +84,7 @@ public:
       tf_buffer_->setTransform(transform, authority, is_static);
     return true;
   }
-  void clear()
+  void clear() const
   {
     tf_buffer_->clear();
   }
@@ -97,7 +98,8 @@ private:
 class TfRtBroadcaster
 {
 public:
-  TfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr)
+  virtual ~TfRtBroadcaster() = default;
+  explicit TfRtBroadcaster(const std::shared_ptr<rclcpp_lifecycle::LifecycleNode>& node_ptr)
   {
     pub_ = node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf", rclcpp::SystemDefaultsQoS());
     realtime_pub_ = std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
@@ -127,10 +129,11 @@ protected:
   std::shared_ptr<rclcpp::Publisher<tf2_msgs::msg::TFMessage>> pub_;
 };
 
-class StaticTfRtBroadcaster : public TfRtBroadcaster
+class StaticTfRtBroadcaster final : public TfRtBroadcaster
 {
 public:
-  StaticTfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr) : TfRtBroadcaster(node_ptr)
+  explicit StaticTfRtBroadcaster(const std::shared_ptr<rclcpp_lifecycle::LifecycleNode>& node_ptr)
+    : TfRtBroadcaster(node_ptr)
   {
     pub_ = node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf_static", rclcpp::SystemDefaultsQoS());
     realtime_pub_ = std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
