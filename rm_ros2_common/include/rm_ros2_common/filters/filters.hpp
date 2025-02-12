@@ -55,24 +55,29 @@ template <typename T>
 class MovingAverageFilter : public Filter<T>
 {
 public:
-  explicit MovingAverageFilter(int num_data): num_data_(num_data), idx_(0), sum_(0.0){
+  explicit MovingAverageFilter(int num_data) : num_data_(num_data), idx_(0), sum_(0.0)
+  {
     buffer_ = new T[num_data_];
     memset((void*)buffer_, 0.0, sizeof(T) * num_data_);
   }
-  ~MovingAverageFilter(){
+  ~MovingAverageFilter()
+  {
     delete[] buffer_;
   }
-  void input(T input_value){
+  void input(T input_value)
+  {
     sum_ -= buffer_[idx_];
     sum_ += input_value;
     buffer_[idx_] = input_value;
     ++idx_;
     idx_ %= num_data_;
   }
-  T output(){
+  T output()
+  {
     return sum_ / num_data_;
   }
-  void clear(){
+  void clear()
+  {
     sum_ = 0.0;
     memset((void*)buffer_, 0.0, sizeof(T) * num_data_);
   }
@@ -126,25 +131,31 @@ template <typename T>
 class RampFilter : public Filter<T>
 {
 public:
-  RampFilter(T acc, T dt){
+  RampFilter(T acc, T dt)
+  {
     acc_ = acc;
     dt_ = dt;
     RampFilter::clear();
   }
   ~RampFilter() = default;
-  void input(T input_value){
+  void input(T input_value)
+  {
     last_value_ += minAbs(input_value - last_value_, acc_ * dt_);
   }
-  void clear(){
+  void clear()
+  {
     last_value_ = 0.;
   }
-  void clear(T last_value){
+  void clear(T last_value)
+  {
     last_value_ = last_value;
   }
-  void setAcc(T acc){
+  void setAcc(T acc)
+  {
     acc_ = acc;
   }  // without clear.
-  T output(){
+  T output()
+  {
     return last_value_;
   }
 

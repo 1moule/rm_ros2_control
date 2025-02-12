@@ -45,15 +45,17 @@
  * Convert a quaternion to RPY.  Uses ZYX order (yaw-pitch-roll), but returns
  * angles in (roll, pitch, yaw).
  */
-inline void quatToRPY(const geometry_msgs::msg::Quaternion& q, double& roll, double& pitch, double& yaw){
-    double as = std::min(-2. * (q.x * q.z - q.w * q.y), .99999);
-    yaw = std::atan2(2 * (q.x * q.y + q.w * q.z), square(q.w) + square(q.x) - square(q.y) - square(q.z));
-    pitch = std::asin(as);
-    roll = std::atan2(2 * (q.y * q.z + q.w * q.x), square(q.w) - square(q.x) - square(q.y) + square(q.z));
+inline void quatToRPY(const geometry_msgs::msg::Quaternion& q, double& roll, double& pitch, double& yaw)
+{
+  double as = std::min(-2. * (q.x * q.z - q.w * q.y), .99999);
+  yaw = std::atan2(2 * (q.x * q.y + q.w * q.z), square(q.w) + square(q.x) - square(q.y) - square(q.z));
+  pitch = std::asin(as);
+  roll = std::atan2(2 * (q.y * q.z + q.w * q.x), square(q.w) - square(q.x) - square(q.y) + square(q.z));
 }
 
-inline void createQuaternionMsgFromRollPitchYaw(geometry_msgs::msg::Quaternion& q,double roll,double pitch,double yaw){
-    tf2::Quaternion tf2_quat;
-    tf2_quat.setRPY(roll, pitch, yaw);
-    q = tf2::toMsg(tf2_quat);
+inline void createQuaternionMsgFromRollPitchYaw(geometry_msgs::msg::Quaternion& q, double roll, double pitch, double yaw)
+{
+  tf2::Quaternion tf2_quat;
+  tf2_quat.setRPY(roll, pitch, yaw);
+  q = tf2::toMsg(tf2_quat);
 }

@@ -42,27 +42,26 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_msgs/msg/tf_message.hpp>
-#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <realtime_tools/realtime_publisher.hpp>
 #include <rclcpp_lifecycle/lifecycle_node.hpp>
 
 class TfHandler
 {
 public:
-  TfHandler(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr):node_ptr_(node_ptr){
-    tf_buffer_ =
-  std::make_unique<tf2_ros::Buffer>(node_ptr->get_clock());
-    tf_listener_ =
-      std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+  TfHandler(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr) : node_ptr_(node_ptr)
+  {
+    tf_buffer_ = std::make_unique<tf2_ros::Buffer>(node_ptr->get_clock());
+    tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
   }
   geometry_msgs::msg::TransformStamped lookupTransform(const std::string& target_frame, const std::string& source_frame,
-                                                  const rclcpp::Time& time)
+                                                       const rclcpp::Time& time)
   {
     auto time_point = std::chrono::time_point<std::chrono::system_clock, std::chrono::nanoseconds>(
-    std::chrono::nanoseconds(time.nanoseconds()));
-    if(time_point > tf2::TimePointZero)
+        std::chrono::nanoseconds(time.nanoseconds()));
+    if (time_point > tf2::TimePointZero)
     {
-      RCLCPP_WARN_THROTTLE(node_ptr_->get_logger(), *node_ptr_->get_clock(), 1000, "Time is not greater than zero. Using default time.");
+      RCLCPP_WARN_THROTTLE(node_ptr_->get_logger(), *node_ptr_->get_clock(), 1000,
+                           "Time is not greater than zero. Using default time.");
       return lookupTransform(target_frame, source_frame);
     }
     else
@@ -91,23 +90,26 @@ public:
 
 private:
   std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{nullptr};
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_{ nullptr };
   std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
 };
 
 class TfRtBroadcaster
 {
 public:
-  TfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr){
-    pub_=node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf", rclcpp::SystemDefaultsQoS());
-    realtime_pub_=std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
+  TfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr)
+  {
+    pub_ = node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf", rclcpp::SystemDefaultsQoS());
+    realtime_pub_ = std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
   }
-  virtual void sendTransform(const geometry_msgs::msg::TransformStamped& transform){
+  virtual void sendTransform(const geometry_msgs::msg::TransformStamped& transform)
+  {
     std::vector<geometry_msgs::msg::TransformStamped> v1;
     v1.push_back(transform);
     sendTransform(v1);
   }
-  virtual void sendTransform(const std::vector<geometry_msgs::msg::TransformStamped>& transforms){
+  virtual void sendTransform(const std::vector<geometry_msgs::msg::TransformStamped>& transforms)
+  {
     tf2_msgs::msg::TFMessage message;
     for (const auto& transform : transforms)
     {
@@ -128,16 +130,19 @@ protected:
 class StaticTfRtBroadcaster : public TfRtBroadcaster
 {
 public:
-  StaticTfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr):TfRtBroadcaster(node_ptr){
-    pub_=node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf_static", rclcpp::SystemDefaultsQoS());
-    realtime_pub_=std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
+  StaticTfRtBroadcaster(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr) : TfRtBroadcaster(node_ptr)
+  {
+    pub_ = node_ptr->create_publisher<tf2_msgs::msg::TFMessage>("/tf_static", rclcpp::SystemDefaultsQoS());
+    realtime_pub_ = std::make_shared<realtime_tools::RealtimePublisher<tf2_msgs::msg::TFMessage>>(pub_);
   }
-  void sendTransform(const geometry_msgs::msg::TransformStamped& transform) override{
+  void sendTransform(const geometry_msgs::msg::TransformStamped& transform) override
+  {
     std::vector<geometry_msgs::msg::TransformStamped> v1;
     v1.push_back(transform);
     sendTransform(v1);
   }
-  void sendTransform(const std::vector<geometry_msgs::msg::TransformStamped>& transforms) override{
+  void sendTransform(const std::vector<geometry_msgs::msg::TransformStamped>& transforms) override
+  {
     for (const auto& transform : transforms)
     {
       bool match_found = false;
