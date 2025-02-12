@@ -13,10 +13,10 @@ enum Target
 };
 enum Armor
 {
-  FRONT,
   LEFT,
-  BACK,
+  FRONT,
   RIGHT,
+  BACK,
   CENTER
 };
 class TargetSelector

@@ -30,34 +30,21 @@ void BulletSolver::selectTarget(geometry_msgs::msg::Point pos, geometry_msgs::ms
     target_kinematics_ = std::make_shared<TrackedArmorKinematic>(pos, vel, yaw, v_yaw, r1);
   else
   {
-    double r{};
-    switch (target_selector_->getArmor())
-    {
-      case FRONT:
-        r = r1;
-        break;
-      case BACK:
-        r = r1;
-        yaw += M_PI;
-        break;
-      case LEFT:
-        r = r2;
-        yaw -= M_PI / 2;
-        pos.z += dz;
-        break;
-      case RIGHT:
-        r = r2;
-        yaw += M_PI / 2;
-        pos.z += dz;
-        break;
-      default:
-        r = r1;
-        break;
-    }
+    const int armor = target_selector_->getArmor();
+    double r = (armor == FRONT || armor == BACK) ? r1 : r2;
+    yaw += (M_PI / 2) * (armor - 1);
+    if (armor == LEFT || armor == RIGHT)
+      pos.z += dz;
     if (std::abs(v_yaw) < config_.max_track_target_vel_)
+    {
+      track_target_ = true;
       target_kinematics_ = std::make_shared<TrackedArmorKinematic>(pos, vel, yaw, v_yaw, r);
+    }
     else
+    {
+      track_target_ = false;
       target_kinematics_ = std::make_shared<UntrackedArmorKinematic>(pos, vel, yaw, v_yaw, r);
+    }
   }
 }
 
