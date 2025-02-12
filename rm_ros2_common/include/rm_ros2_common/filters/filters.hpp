@@ -52,19 +52,19 @@ public:
 };
 
 template <typename T>
-class MovingAverageFilter : public Filter<T>
+class MovingAverageFilter final : public Filter<T>
 {
 public:
   explicit MovingAverageFilter(int num_data) : num_data_(num_data), idx_(0), sum_(0.0)
   {
     buffer_ = new T[num_data_];
-    memset((void*)buffer_, 0.0, sizeof(T) * num_data_);
+    memset(static_cast<void*>(buffer_), 0.0, sizeof(T) * num_data_);
   }
-  ~MovingAverageFilter()
+  ~MovingAverageFilter() override
   {
     delete[] buffer_;
   }
-  void input(T input_value)
+  void input(T input_value) override
   {
     sum_ -= buffer_[idx_];
     sum_ += input_value;
@@ -72,14 +72,14 @@ public:
     ++idx_;
     idx_ %= num_data_;
   }
-  T output()
+  T output() override
   {
     return sum_ / num_data_;
   }
-  void clear()
+  void clear() override
   {
     sum_ = 0.0;
-    memset((void*)buffer_, 0.0, sizeof(T) * num_data_);
+    memset(static_cast<void*>(buffer_), 0.0, sizeof(T) * num_data_);
   }
 
 private:
@@ -95,7 +95,7 @@ template <typename T>
 class Vector3WithFilter
 {
 public:
-  Vector3WithFilter(int num_data)
+  explicit Vector3WithFilter(int num_data)
   {
     for (int i = 0; i < 3; i++)
       filter_vector_.push_back(std::make_shared<MovingAverageFilter<T>>(num_data));
@@ -128,7 +128,7 @@ private:
 };
 
 template <typename T>
-class RampFilter : public Filter<T>
+class RampFilter final : public Filter<T>
 {
 public:
   RampFilter(T acc, T dt)
@@ -137,12 +137,12 @@ public:
     dt_ = dt;
     RampFilter::clear();
   }
-  ~RampFilter() = default;
-  void input(T input_value)
+  ~RampFilter() override = default;
+  void input(T input_value) override
   {
     last_value_ += minAbs(input_value - last_value_, acc_ * dt_);
   }
-  void clear()
+  void clear() override
   {
     last_value_ = 0.;
   }
@@ -153,8 +153,8 @@ public:
   void setAcc(T acc)
   {
     acc_ = acc;
-  }  // without clear.
-  T output()
+  }
+  T output() override
   {
     return last_value_;
   }
