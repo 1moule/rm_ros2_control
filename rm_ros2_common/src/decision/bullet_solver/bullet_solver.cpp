@@ -9,21 +9,15 @@ namespace bullet_solver
 BulletSolver::BulletSolver(std::shared_ptr<rclcpp_lifecycle::LifecycleNode> node_ptr) : node_ptr_(std::move(node_ptr))
 {
   config_.g = node_ptr_->get_parameter("bullet_solver.g").get_value<double>();
+  config_.delay = node_ptr_->get_parameter("bullet_solver.delay").get_value<double>();
   config_.max_track_target_vel_ = node_ptr_->get_parameter("bullet_solver.max_track_target_vel").get_value<double>();
   config_.resistance_coff_qd_16 = node_ptr_->get_parameter("bullet_solver.resistance_coff_qd_16").get_value<double>();
   config_.resistance_coff_qd_25 = node_ptr_->get_parameter("bullet_solver.resistance_coff_qd_25").get_value<double>();
 
-  target_selector_ = std::make_shared<TargetSelector>();
-}
+  state_pub_ = node_ptr_->create_publisher<rm_ros2_msgs::msg::BulletSolverState>("state", rclcpp::SystemDefaultsQoS());
+  rt_state_pub_ = std::make_shared<realtime_tools::RealtimePublisher<rm_ros2_msgs::msg::BulletSolverState>>(state_pub_);
 
-double BulletSolver::getResistanceCoefficient(const double bullet_speed) const
-{
-  double resistance_coff;
-  if (bullet_speed <= 16)
-    resistance_coff = config_.resistance_coff_qd_16;
-  else
-    resistance_coff = config_.resistance_coff_qd_25;
-  return resistance_coff;
+  target_selector_ = std::make_shared<TargetSelector>();
 }
 
 void BulletSolver::selectTarget(geometry_msgs::msg::Point pos, geometry_msgs::msg::Vector3 vel, double bullet_speed,
@@ -131,5 +125,53 @@ void BulletSolver::getPitchVelDes(double& vel_des) const
   }
   const double pitch_vel_des = (output_pitch_next - output_pitch_) / dt;
   vel_des = pitch_vel_des;
+}
+
+double BulletSolver::getResistanceCoefficient(const double bullet_speed) const
+{
+  double resistance_coff;
+  if (bullet_speed <= 16)
+    resistance_coff = config_.resistance_coff_qd_16;
+  else
+    resistance_coff = config_.resistance_coff_qd_25;
+  return resistance_coff;
+}
+
+double BulletSolver::getGimbalError(double yaw_real, double pitch_real) const
+{
+  double error;
+  if ((target_selector_->getTarget() == ARMOR && track_target_) || target_selector_->getTarget() == WINDMILL)
+  {
+    double bullet_rho =
+        bullet_speed_ * std::cos(pitch_real) * (1 - std::exp(-resistance_coff_ * fly_time_)) / resistance_coff_;
+    double bullet_x = bullet_rho * std::cos(yaw_real);
+    double bullet_y = bullet_rho * std::sin(yaw_real);
+    double bullet_z = (bullet_speed_ * std::sin(pitch_real) + (config_.g / resistance_coff_)) *
+                          (1 - std::exp(-resistance_coff_ * fly_time_)) / resistance_coff_ -
+                      config_.g * fly_time_ / resistance_coff_;
+    error = std::sqrt(std::pow(target_pos_.x - bullet_x, 2) + std::pow(target_pos_.y - bullet_y, 2) +
+                      std::pow(target_pos_.z - bullet_z, 2));
+  }
+  else
+  {
+    double delay = config_.delay;
+    geometry_msgs::msg::Point target_pos_after_fly_time_and_delay{};
+    target_pos_after_fly_time_and_delay = target_kinematics_->position(fly_time_ + delay);
+    error = std::sqrt(std::pow(target_pos_.x - target_pos_after_fly_time_and_delay.x, 2) +
+                      std::pow(target_pos_.y - target_pos_after_fly_time_and_delay.y, 2) +
+                      std::pow(target_pos_.z - target_pos_after_fly_time_and_delay.z, 2));
+  }
+  return error;
+}
+
+void BulletSolver::publishState() const
+{
+  if (rt_state_pub_)
+  {
+    if (rt_state_pub_->trylock())
+    {
+      rt_state_pub_->unlockAndPublish();
+    }
+  }
 }
 }  // namespace bullet_solver
