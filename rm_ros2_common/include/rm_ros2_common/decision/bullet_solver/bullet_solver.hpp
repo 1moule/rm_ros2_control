@@ -35,7 +35,7 @@ public:
     return -output_pitch_;
   }
   [[nodiscard]] double getResistanceCoefficient(double bullet_speed) const;
-  double BulletSolver::getGimbalError(double yaw_real, double pitch_real) const;
+  double getGimbalError(double yaw_real, double pitch_real) const;
   void publishState() const;
   ~BulletSolver() = default;
 
