@@ -22,12 +22,8 @@ class ArmorKinematics : public TargetKinematicsBase
 {
 public:
   ArmorKinematics(geometry_msgs::msg::Point pos, geometry_msgs::msg::Vector3 vel, double yaw, double v_yaw, double r)
+    : pos_(pos), vel_(vel), yaw_(yaw), v_yaw_(v_yaw), r_(r)
   {
-    pos_ = pos;
-    vel_ = vel;
-    yaw_ = yaw;
-    v_yaw_ = v_yaw;
-    r_ = r;
   }
 
 protected:
