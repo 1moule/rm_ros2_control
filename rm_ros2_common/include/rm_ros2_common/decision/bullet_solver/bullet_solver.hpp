@@ -2,8 +2,7 @@
 // Created by guanlin on 25-2-7.
 //
 
-#ifndef BULLET_SOLVER_HPP
-#define BULLET_SOLVER_HPP
+#pragma once
 
 #include <realtime_tools/realtime_publisher.hpp>
 #include <realtime_tools/realtime_buffer.hpp>
@@ -72,4 +71,3 @@ private:
   //  visualization_msgs::Marker marker_real_;
 };
 }  // namespace bullet_solver
-#endif  // BULLET_SOLVER_HPP

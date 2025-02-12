@@ -2,8 +2,6 @@
 // Created by guanlin on 25-2-10.
 //
 
-#ifndef TARGET_KINEMATICS_HPP
-#define TARGET_KINEMATICS_HPP
 #pragma once
 
 #include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
@@ -121,4 +119,3 @@ private:
   geometry_msgs::msg::TransformStamped windmill2odom_;
 };
 }  // namespace bullet_solver
-#endif  // TARGET_KINEMATICS_HPP
