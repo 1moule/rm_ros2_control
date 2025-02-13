@@ -20,6 +20,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/BulletSolverState.msg"
         "msg/ChassisCmd.msg"
+        "msg/DbusData.msg"
         "msg/GimbalCmd.msg"
         "msg/GimbalPosState.msg"
         "msg/TrackData.msg"
