@@ -7,7 +7,7 @@
 #include <rclcpp/rclcpp.hpp>
 
 template <typename ParameterT>
-auto getParam(rclcpp::Node::SharedPtr&& node, const std::string& name, const ParameterT& default_value)
+auto getParam(rclcpp::Node::SharedPtr& node, const std::string& name, const ParameterT& default_value)
 {
   if (!node->has_parameter(name))
   {

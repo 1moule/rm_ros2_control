@@ -35,6 +35,7 @@ file(GLOB TOOLS "include/rm_ros2_common/tools/*")
 add_library(${PROJECT_NAME} SHARED
         ${FILTERS}
         ${TOOLS}
+        include/rm_ros2_common/decision/command_sender.hpp
         include/rm_ros2_common/decision/trajectory_planner.hpp
         src/decision/bullet_solver/bullet_solver.cpp
 )
