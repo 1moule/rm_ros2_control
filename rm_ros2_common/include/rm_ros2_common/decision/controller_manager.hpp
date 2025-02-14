@@ -9,10 +9,10 @@
 
 namespace rm_ros2_common
 {
-class MyControllerNode
+class ControllerManager
 {
 public:
-  explicit MyControllerNode(rclcpp::Node::SharedPtr node) : node_(std::move(node))
+  explicit ControllerManager(rclcpp::Node::SharedPtr node) : node_(std::move(node))
   {
     // Create an executor
     auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
@@ -25,14 +25,16 @@ public:
     node_->get_parameter("controllers", controllers_);
 
     // Load and configure controllers
-    load_and_configure_controllers();
+    loadAndConfigureControllers(controllers_);
+    activateControllers(controllers_);
+    deactivateControllers(controllers_);
   }
 
 private:
-  void load_and_configure_controllers() const
+  void loadAndConfigureControllers(const std::vector<std::string>& controllers) const
   {
     // Load controllers
-    for (const auto& controller : controllers_)
+    for (const auto& controller : controllers)
     {
       auto load_client =
           node_->create_client<controller_manager_msgs::srv::LoadController>("controller_manager/load_controller");
@@ -48,8 +50,7 @@ private:
         }
       }
     }
-
-    for (const auto& controller : controllers_)
+    for (const auto& controller : controllers)
     {
       // Configure the controller
       auto configure_client = node_->create_client<controller_manager_msgs::srv::ConfigureController>(
@@ -66,12 +67,14 @@ private:
         }
       }
     }
-
+  }
+  void activateControllers(const std::vector<std::string>& controllers) const
+  {
     // Switch the controller to active mode
     auto switch_client =
         node_->create_client<controller_manager_msgs::srv::SwitchController>("controller_manager/switch_controller");
     auto switch_request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
-    switch_request->activate_controllers = controllers_;
+    switch_request->activate_controllers = controllers;
     switch_request->strictness = controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
     if (switch_client->wait_for_service(std::chrono::seconds(10)))
     {
@@ -79,7 +82,29 @@ private:
       if (rclcpp::spin_until_future_complete(node_->get_node_base_interface(), switch_result) ==
           rclcpp::FutureReturnCode::SUCCESS)
       {
-        RCLCPP_INFO(node_->get_logger(), "Activated controller: %s", switch_request->activate_controllers[0].c_str());
+        RCLCPP_INFO(node_->get_logger(), "Activated controllers:");
+        for (const auto& controller : controllers)
+          RCLCPP_INFO(node_->get_logger(), controller.c_str());
+      }
+    }
+  }
+  void deactivateControllers(const std::vector<std::string>& controllers) const
+  {
+    // Switch the controller to active mode
+    auto switch_client =
+        node_->create_client<controller_manager_msgs::srv::SwitchController>("controller_manager/switch_controller");
+    auto switch_request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
+    switch_request->deactivate_controllers = controllers;
+    switch_request->strictness = controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
+    if (switch_client->wait_for_service(std::chrono::seconds(10)))
+    {
+      auto switch_result = switch_client->async_send_request(switch_request);
+      if (rclcpp::spin_until_future_complete(node_->get_node_base_interface(), switch_result) ==
+          rclcpp::FutureReturnCode::SUCCESS)
+      {
+        RCLCPP_INFO(node_->get_logger(), "Deactivated controllers:");
+        for (const auto& controller : controllers)
+          RCLCPP_INFO(node_->get_logger(), controller.c_str());
       }
     }
   }
