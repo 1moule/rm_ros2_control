@@ -43,8 +43,8 @@ public:
   }
 
 protected:
+  double qos_{};
   MsgType msg_;
-  double qos_;
   std::string topic_;
   rclcpp::Node::SharedPtr node_;
   typename rclcpp::Publisher<MsgType>::SharedPtr pub_;

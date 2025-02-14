@@ -30,13 +30,14 @@ find_package(Eigen3 REQUIRED)
 foreach (Dependency IN ITEMS ${CONTROLLER_INCLUDE_DEPENDS})
     find_package(${Dependency} REQUIRED)
 endforeach ()
+file(GLOB DECISION "include/rm_ros2_common/decision/*")
 file(GLOB FILTERS "include/rm_ros2_common/filters/*")
 file(GLOB TOOLS "include/rm_ros2_common/tools/*")
+list(REMOVE_ITEM DECISION "include/rm_ros2_common/decision/bullet_solver/*")
 add_library(${PROJECT_NAME} SHARED
+        ${DECISION}
         ${FILTERS}
         ${TOOLS}
-        include/rm_ros2_common/decision/command_sender.hpp
-        include/rm_ros2_common/decision/trajectory_planner.hpp
         src/decision/bullet_solver/bullet_solver.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
@@ -68,10 +69,6 @@ if (BUILD_TESTING)
 endif ()
 
 ## EXPORTS
-ament_export_include_directories(
-        include
-        ${Eigen3_INCLUDE_DIRS}
-)
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(
         ${CONTROLLER_INCLUDE_DEPENDS}
