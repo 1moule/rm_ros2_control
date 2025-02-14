@@ -36,7 +36,7 @@ public:
   {
     pub_->publish(msg_);
   }
-  virtual void setZero() {};
+  virtual void setZero() = 0;
   MsgType* getMsg()
   {
     return &msg_;
@@ -53,27 +53,51 @@ protected:
 class Vel2DCommandSender final : public CommandSenderBase<geometry_msgs::msg::Twist>
 {
 public:
-  explicit Vel2DCommandSender(const rclcpp::Node::SharedPtr& node) : CommandSenderBase(node), max_linear_x_(node)
+  explicit Vel2DCommandSender(const rclcpp::Node::SharedPtr& node)
+    : CommandSenderBase(node), max_linear_x_(node), max_linear_y_(node), max_angular_z_(node)
   {
-    auto x = getParam<std::vector<double>>(node_, "max_linear_x.x", { 0., 0., 0. });
-    auto y = getParam<std::vector<double>>(node_, "max_linear_x.y", { 0., 0., 0. });
+    std::vector<double> x, y;
+    x = getParam<std::vector<double>>(node_, "max_linear_x.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, "max_linear_x.y", { 0., 0., 0. });
     max_linear_x_.init(x, y);
-    // if (!nh.getParam("max_linear_y", xml_rpc_value))
-    //   ROS_ERROR("Max Y linear velocity no defined (namespace: %s)", nh.getNamespace().c_str());
-    // else
-    //   max_linear_y_.init(xml_rpc_value);
-    // if (!nh.getParam("max_angular_z", xml_rpc_value))
-    //   ROS_ERROR("Max Z angular velocity no defined (namespace: %s)", nh.getNamespace().c_str());
-    // else
-    //   max_angular_z_.init(xml_rpc_value);
-    // std::string topic;
-    // node_->get_parameter("power_limit_topic", topic);
-    // chassis_power_limit_subscriber_ = node_->create_subscription<rm_ros2_msgs::msg::ChassisCmd>(
-    //     topic, rclcpp::SystemDefaultsQoS(),
-    //     std::bind(&Vel2DCommandSender::chassisCmdCallback, this, std::placeholders::_1));
+    x = getParam<std::vector<double>>(node_, "max_linear_y.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, "max_linear_y.y", { 0., 0., 0. });
+    max_linear_y_.init(x, y);
+    x = getParam<std::vector<double>>(node_, "max_angular_z.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, "max_angular_z.y", { 0., 0., 0. });
+    max_angular_z_.init(x, y);
+
+    const std::string topic = getParam(node_, "power_limit_topic", std::string("/cmd_chassis"));
+    chassis_power_limit_subscriber_ = node_->create_subscription<rm_ros2_msgs::msg::ChassisCmd>(
+        topic, rclcpp::SystemDefaultsQoS(),
+        std::bind(&Vel2DCommandSender::chassisCmdCallback, this, std::placeholders::_1));
+  }
+  void setLinearXVel(double scale)
+  {
+    msg_.linear.x = scale * max_linear_x_.output(power_limit_);
+  };
+  void setLinearYVel(double scale)
+  {
+    msg_.linear.y = scale * max_linear_y_.output(power_limit_);
+  };
+  void setAngularZVel(double scale)
+  {
+    msg_.angular.z = scale * max_angular_z_.output(power_limit_);
+  };
+  void setZero() override
+  {
+    msg_.linear.x = 0.;
+    msg_.linear.y = 0.;
+    msg_.angular.z = 0.;
   }
 
 protected:
-  LinearInterp max_linear_x_;
+  void chassisCmdCallback(const rm_ros2_msgs::msg::ChassisCmd::SharedPtr msg)
+  {
+    power_limit_ = msg->power_limit;
+  }
+  double power_limit_ = 0.;
+  LinearInterp max_linear_x_, max_linear_y_, max_angular_z_;
+  rclcpp::Subscription<rm_ros2_msgs::msg::ChassisCmd>::SharedPtr chassis_power_limit_subscriber_;
 };
 }  // namespace rm_ros2_common
