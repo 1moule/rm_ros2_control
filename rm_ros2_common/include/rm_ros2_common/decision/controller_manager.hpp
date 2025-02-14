@@ -21,13 +21,20 @@ public:
     controller_manager_ = std::make_shared<controller_manager::ControllerManager>(
         executor, "controller_manager", node_->get_namespace(), rclcpp::NodeOptions());
 
-    node_->declare_parameter<std::vector<std::string>>("controllers", std::vector<std::string>());
-    node_->get_parameter("controllers", controllers_);
+    // Get controllers
+    node_->declare_parameter<std::vector<std::string>>("controllers.main_controllers", std::vector<std::string>());
+    node_->get_parameter("controllers.main_controllers", main_controllers_);
 
     // Load and configure controllers
-    loadAndConfigureControllers(controllers_);
-    activateControllers(controllers_);
-    deactivateControllers(controllers_);
+    loadAndConfigureControllers(main_controllers_);
+  }
+  void activateMainControllers() const
+  {
+    activateControllers(main_controllers_);
+  }
+  void deactivateMainControllers() const
+  {
+    deactivateControllers(main_controllers_);
   }
 
 private:
@@ -111,6 +118,6 @@ private:
 
   std::shared_ptr<controller_manager::ControllerManager> controller_manager_{};
   rclcpp::Node::SharedPtr node_;
-  std::vector<std::string> controllers_;
+  std::vector<std::string> main_controllers_;
 };
 }  // namespace rm_ros2_common
