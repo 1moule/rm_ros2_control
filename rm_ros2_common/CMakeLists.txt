@@ -22,6 +22,7 @@ set(CONTROLLER_INCLUDE_DEPENDS
         tf2_geometry_msgs
         realtime_tools
         rm_ros2_msgs
+        controller_manager
 )
 
 # Find dependencies
