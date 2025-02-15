@@ -18,13 +18,14 @@ class CommandSenderBase
 {
 public:
   virtual ~CommandSenderBase() = default;
-  explicit CommandSenderBase(const rclcpp::Node::SharedPtr& node) : node_(node)
+  CommandSenderBase(const rclcpp::Node::SharedPtr& node, const std::string& param_prefix)
+    : param_prefix_(param_prefix), node_(node)
   {
-    node_->declare_parameter<std::string>("topic", "error");
-    if (!node_->get_parameter("topic", topic_))
+    node_->declare_parameter<std::string>(param_prefix_ + "topic", "error");
+    if (!node_->get_parameter(param_prefix_ + "topic", topic_))
       RCLCPP_ERROR(node_->get_logger(), "Topic name no defined (namespace: %s)", node_->get_name());
-    node_->declare_parameter<double>("qos", 10.0);
-    node_->get_parameter("qos", qos_);
+    node_->declare_parameter<double>(param_prefix_ + "qos", 10.0);
+    node_->get_parameter(param_prefix_ + "qos", qos_);
     pub_ = node_->create_publisher<MsgType>(topic_, qos_);
   }
   void setMode(int mode)
@@ -45,29 +46,44 @@ public:
 protected:
   double qos_{};
   MsgType msg_;
-  std::string topic_;
+  std::string topic_, param_prefix_;
   rclcpp::Node::SharedPtr node_;
   typename rclcpp::Publisher<MsgType>::SharedPtr pub_;
+};
+
+template <class MsgType>
+class TimeStampCommandSenderBase : public CommandSenderBase<MsgType>
+{
+public:
+  TimeStampCommandSenderBase(const rclcpp::Node::SharedPtr& node, const std::string& param_prefix)
+    : CommandSenderBase<MsgType>(node, param_prefix)
+  {
+  }
+  void sendCommand(const rclcpp::Time& time) override
+  {
+    CommandSenderBase<MsgType>::msg_.stamp = time;
+    CommandSenderBase<MsgType>::sendCommand(time);
+  }
 };
 
 class Vel2DCommandSender final : public CommandSenderBase<geometry_msgs::msg::Twist>
 {
 public:
-  explicit Vel2DCommandSender(const rclcpp::Node::SharedPtr& node)
-    : CommandSenderBase(node), max_linear_x_(node), max_linear_y_(node), max_angular_z_(node)
+  explicit Vel2DCommandSender(const rclcpp::Node::SharedPtr& node, const std::string& param_prefix)
+    : CommandSenderBase(node, param_prefix), max_linear_x_(node), max_linear_y_(node), max_angular_z_(node)
   {
     std::vector<double> x, y;
-    x = getParam<std::vector<double>>(node_, "max_linear_x.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, "max_linear_x.y", { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + "max_linear_x.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + "max_linear_x.y", { 0., 0., 0. });
     max_linear_x_.init(x, y);
-    x = getParam<std::vector<double>>(node_, "max_linear_y.x", { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + "max_linear_y.x", { 0., 0., 0. });
     y = getParam<std::vector<double>>(node_, "max_linear_y.y", { 0., 0., 0. });
     max_linear_y_.init(x, y);
-    x = getParam<std::vector<double>>(node_, "max_angular_z.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, "max_angular_z.y", { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + "max_angular_z.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + "max_angular_z.y", { 0., 0., 0. });
     max_angular_z_.init(x, y);
 
-    const std::string topic = getParam(node_, "power_limit_topic", std::string("/cmd_chassis"));
+    const std::string topic = getParam(node_, param_prefix_ + "power_limit_topic", std::string("/cmd_chassis"));
     chassis_power_limit_subscriber_ = node_->create_subscription<rm_ros2_msgs::msg::ChassisCmd>(
         topic, rclcpp::SystemDefaultsQoS(),
         std::bind(&Vel2DCommandSender::chassisCmdCallback, this, std::placeholders::_1));
