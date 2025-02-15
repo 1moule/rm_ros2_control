@@ -182,14 +182,15 @@ public:
   explicit GimbalCommandSender(const rclcpp::Node::SharedPtr& node, const std::string& param_prefix)
     : TimeStampCommandSenderBase(node, param_prefix)
   {
-    // if (!nh.getParam("max_yaw_vel", max_yaw_vel_))
-    //   ROS_ERROR("Max yaw velocity no defined (namespace: %s)", nh.getNamespace().c_str());
-    // if (!nh.getParam("max_pitch_vel", max_pitch_vel_))
-    //   ROS_ERROR("Max pitch velocity no defined (namespace: %s)", nh.getNamespace().c_str());
-    // if (!nh.getParam("track_timeout", track_timeout_))
-    //   ROS_ERROR("Track timeout no defined (namespace: %s)", nh.getNamespace().c_str());
-    // if (!nh.getParam("eject_sensitivity", eject_sensitivity_))
-    //   eject_sensitivity_ = 1.;
+    if (!getParam(node_, param_prefix_ + ".max_yaw_vel", max_yaw_vel_, 0.))
+      RCLCPP_ERROR(node_->get_logger(), "Max yaw velocity no defined (namespace: %s)", node_->get_name());
+    if (!getParam(node_, param_prefix_ + ".max_pitch_vel", max_pitch_vel_, 0.))
+      RCLCPP_ERROR(node_->get_logger(), "Max pitch velocity no defined (namespace: %s)", node_->get_name());
+    if (!getParam(node_, param_prefix_ + ".track_timeout", track_timeout_, 0.1))
+      RCLCPP_WARN_ONCE(node_->get_logger(), "Track timeout no defined (namespace: %s), use default", node_->get_name());
+    if (!getParam(node_, param_prefix_ + ".eject_sensitivity", eject_sensitivity_, 1.))
+      RCLCPP_WARN_ONCE(node_->get_logger(), "Eject sensitivity no defined (namespace: %s), use default",
+                       node_->get_name());
   }
   void setRate(double scale_yaw, double scale_pitch)
   {
