@@ -79,7 +79,7 @@ public:
     y = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.y", { 0., 0., 0. });
     max_linear_x_.init(x, y);
     x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, ".max_linear_y.y", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.y", { 0., 0., 0. });
     max_linear_y_.init(x, y);
     x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.x", { 0., 0., 0. });
     y = getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.y", { 0., 0., 0. });
@@ -130,7 +130,7 @@ public:
     y = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.y", { 0., 0., 0. });
     accel_x_.init(x, y);
     x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, ".accel_y.y", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.y", { 0., 0., 0. });
     accel_y_.init(x, y);
     x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.x", { 0., 0., 0. });
     y = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.y", { 0., 0., 0. });
