@@ -8,6 +8,7 @@
 #include <std_msgs/msg/float64.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <rm_ros2_msgs/msg/chassis_cmd.hpp>
+#include <rm_ros2_msgs/msg/gimbal_cmd.hpp>
 #include <rm_ros2_common/filters/linear_interpolation.hpp>
 #include <rm_ros2_common/tools/ros_tools.hpp>
 #include <utility>
@@ -74,19 +75,19 @@ public:
     : CommandSenderBase(node, param_prefix), max_linear_x_(node), max_linear_y_(node), max_angular_z_(node)
   {
     std::vector<double> x, y;
-    x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.y", { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.x", x, { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.y", y, { 0., 0., 0. });
     max_linear_x_.init(x, y);
-    x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, ".max_linear_y.y", { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.x", x, { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.y", y, { 0., 0., 0. });
     max_linear_y_.init(x, y);
-    x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.y", { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.x", x, { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.y", y, { 0., 0., 0. });
     max_angular_z_.init(x, y);
-
-    const std::string topic = getParam(node_, param_prefix_ + ".power_limit_topic", std::string("/cmd_chassis"));
+    std::string power_limit_topic;
+    getParam(node_, param_prefix_ + ".power_limit_topic", power_limit_topic, std::string("/cmd_chassis"));
     chassis_power_limit_subscriber_ = node_->create_subscription<rm_ros2_msgs::msg::ChassisCmd>(
-        topic, rclcpp::SystemDefaultsQoS(),
+        power_limit_topic, rclcpp::SystemDefaultsQoS(),
         std::bind(&Vel2DCommandSender::chassisCmdCallback, this, std::placeholders::_1));
   }
   void setLinearXVel(double scale)
@@ -125,14 +126,14 @@ public:
     : TimeStampCommandSenderBase(node, param_prefix), accel_x_(node), accel_y_(node), accel_z_(node)
   {
     std::vector<double> x, y;
-    x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.y", { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.x", x, { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.y", y, { 0., 0., 0. });
     accel_x_.init(x, y);
-    x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, ".accel_y.y", { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.x", x, { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.y", y, { 0., 0., 0. });
     accel_y_.init(x, y);
-    x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.x", { 0., 0., 0. });
-    y = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.y", { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.x", x, { 0., 0., 0. });
+    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.y", y, { 0., 0., 0. });
     accel_z_.init(x, y);
   }
 
@@ -173,5 +174,62 @@ public:
 
 private:
   LinearInterp accel_x_, accel_y_, accel_z_;
+};
+
+class GimbalCommandSender final : public TimeStampCommandSenderBase<rm_ros2_msgs::msg::GimbalCmd>
+{
+public:
+  explicit GimbalCommandSender(const rclcpp::Node::SharedPtr& node, const std::string& param_prefix)
+    : TimeStampCommandSenderBase(node, param_prefix)
+  {
+    // if (!nh.getParam("max_yaw_vel", max_yaw_vel_))
+    //   ROS_ERROR("Max yaw velocity no defined (namespace: %s)", nh.getNamespace().c_str());
+    // if (!nh.getParam("max_pitch_vel", max_pitch_vel_))
+    //   ROS_ERROR("Max pitch velocity no defined (namespace: %s)", nh.getNamespace().c_str());
+    // if (!nh.getParam("track_timeout", track_timeout_))
+    //   ROS_ERROR("Track timeout no defined (namespace: %s)", nh.getNamespace().c_str());
+    // if (!nh.getParam("eject_sensitivity", eject_sensitivity_))
+    //   eject_sensitivity_ = 1.;
+  }
+  void setRate(double scale_yaw, double scale_pitch)
+  {
+    if (std::abs(scale_yaw) > 1)
+      scale_yaw = scale_yaw > 0 ? 1 : -1;
+    if (std::abs(scale_pitch) > 1)
+      scale_pitch = scale_pitch > 0 ? 1 : -1;
+    msg_.rate_yaw = scale_yaw * max_yaw_vel_;
+    msg_.rate_pitch = scale_pitch * max_pitch_vel_;
+    if (eject_flag_)
+    {
+      msg_.rate_yaw *= eject_sensitivity_;
+      msg_.rate_pitch *= eject_sensitivity_;
+    }
+  }
+  void setGimbalTraj(double traj_yaw, double traj_pitch)
+  {
+    msg_.traj_yaw = traj_yaw;
+    msg_.traj_pitch = traj_pitch;
+  }
+  void setZero() override
+  {
+    msg_.rate_yaw = 0.;
+    msg_.rate_pitch = 0.;
+  }
+  void setBulletSpeed(double bullet_speed)
+  {
+    msg_.bullet_speed = bullet_speed;
+  }
+  void setEject(bool flag)
+  {
+    eject_flag_ = flag;
+  }
+  bool getEject() const
+  {
+    return eject_flag_;
+  }
+
+private:
+  double max_yaw_vel_{}, max_pitch_vel_{}, track_timeout_{}, eject_sensitivity_ = 1.;
+  bool eject_flag_{};
 };
 }  // namespace rm_ros2_common
