@@ -17,8 +17,8 @@ template <typename ParameterT>
 bool getParam(const rclcpp::Node::SharedPtr& node, const std::string& name, const ParameterT& default_value,
               ParameterT& value)
 {
-  rclcpp::Parameter param;
-  if (node->get_parameter(name, param))
+  node->declare_parameter<ParameterT>(name, default_value);
+  if (rclcpp::Parameter param; node->get_parameter(name, param))
   {
     value = param.get_value<ParameterT>();
     return true;
