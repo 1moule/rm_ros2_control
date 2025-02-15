@@ -75,19 +75,19 @@ public:
     : CommandSenderBase(node, param_prefix), max_linear_x_(node), max_linear_y_(node), max_angular_z_(node)
   {
     std::vector<double> x, y;
-    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.x", x, { 0., 0., 0. });
-    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.y", y, { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_x.y", { 0., 0., 0. });
     max_linear_x_.init(x, y);
-    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.x", x, { 0., 0., 0. });
-    getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.y", y, { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_linear_y.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, ".max_linear_y.y", { 0., 0., 0. });
     max_linear_y_.init(x, y);
-    getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.x", x, { 0., 0., 0. });
-    getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.y", y, { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + ".max_angular_z.y", { 0., 0., 0. });
     max_angular_z_.init(x, y);
-    std::string power_limit_topic;
-    getParam(node_, param_prefix_ + ".power_limit_topic", power_limit_topic, std::string("/cmd_chassis"));
+
+    const std::string topic = getParam(node_, param_prefix_ + ".power_limit_topic", std::string("/cmd_chassis"));
     chassis_power_limit_subscriber_ = node_->create_subscription<rm_ros2_msgs::msg::ChassisCmd>(
-        power_limit_topic, rclcpp::SystemDefaultsQoS(),
+        topic, rclcpp::SystemDefaultsQoS(),
         std::bind(&Vel2DCommandSender::chassisCmdCallback, this, std::placeholders::_1));
   }
   void setLinearXVel(double scale)
@@ -126,14 +126,14 @@ public:
     : TimeStampCommandSenderBase(node, param_prefix), accel_x_(node), accel_y_(node), accel_z_(node)
   {
     std::vector<double> x, y;
-    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.x", x, { 0., 0., 0. });
-    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.y", y, { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_x.y", { 0., 0., 0. });
     accel_x_.init(x, y);
-    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.x", x, { 0., 0., 0. });
-    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.y", y, { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_y.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, ".accel_y.y", { 0., 0., 0. });
     accel_y_.init(x, y);
-    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.x", x, { 0., 0., 0. });
-    getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.y", y, { 0., 0., 0. });
+    x = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.x", { 0., 0., 0. });
+    y = getParam<std::vector<double>>(node_, param_prefix_ + ".accel_z.y", { 0., 0., 0. });
     accel_z_.init(x, y);
   }
 
@@ -182,15 +182,14 @@ public:
   explicit GimbalCommandSender(const rclcpp::Node::SharedPtr& node, const std::string& param_prefix)
     : TimeStampCommandSenderBase(node, param_prefix)
   {
-    if (!getParam(node_, param_prefix_ + ".max_yaw_vel", max_yaw_vel_, 0.))
-      RCLCPP_ERROR(node_->get_logger(), "Max yaw velocity no defined (namespace: %s)", node_->get_name());
-    if (!getParam(node_, param_prefix_ + ".max_pitch_vel", max_pitch_vel_, 0.))
-      RCLCPP_ERROR(node_->get_logger(), "Max pitch velocity no defined (namespace: %s)", node_->get_name());
-    if (!getParam(node_, param_prefix_ + ".track_timeout", track_timeout_, 0.1))
-      RCLCPP_WARN_ONCE(node_->get_logger(), "Track timeout no defined (namespace: %s), use default", node_->get_name());
-    if (!getParam(node_, param_prefix_ + ".eject_sensitivity", eject_sensitivity_, 1.))
-      RCLCPP_WARN_ONCE(node_->get_logger(), "Eject sensitivity no defined (namespace: %s), use default",
-                       node_->get_name());
+    // if (!nh.getParam("max_yaw_vel", max_yaw_vel_))
+    //   ROS_ERROR("Max yaw velocity no defined (namespace: %s)", nh.getNamespace().c_str());
+    // if (!nh.getParam("max_pitch_vel", max_pitch_vel_))
+    //   ROS_ERROR("Max pitch velocity no defined (namespace: %s)", nh.getNamespace().c_str());
+    // if (!nh.getParam("track_timeout", track_timeout_))
+    //   ROS_ERROR("Track timeout no defined (namespace: %s)", nh.getNamespace().c_str());
+    // if (!nh.getParam("eject_sensitivity", eject_sensitivity_))
+    //   eject_sensitivity_ = 1.;
   }
   void setRate(double scale_yaw, double scale_pitch)
   {
