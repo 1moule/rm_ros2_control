@@ -24,6 +24,11 @@ rosidl_generate_interfaces(${PROJECT_NAME}
         "msg/GimbalCmd.msg"
         "msg/GimbalPosState.msg"
         "msg/TrackData.msg"
+        "msg/referee/GameRobotHp.msg"
+        "msg/referee/GameRobotStatus.msg"
+        "msg/referee/GameStatus.msg"
+        "msg/referee/PowerHeatData.msg"
+        "msg/referee/PowerManagementSampleAndStatusData.msg"
         DEPENDENCIES geometry_msgs std_msgs builtin_interfaces# Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
 )
 
