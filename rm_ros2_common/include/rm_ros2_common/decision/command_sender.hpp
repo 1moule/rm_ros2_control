@@ -24,8 +24,7 @@ public:
     : param_prefix_(std::move(param_prefix)), node_(std::move(node))
   {
     node_->declare_parameter<std::string>(param_prefix_ + ".topic", "error");
-    if (!node_->get_parameter(param_prefix_ + ".topic", topic_))
-      RCLCPP_ERROR(node_->get_logger(), "Topic name no defined (namespace: %s)", node_->get_name());
+    node_->get_parameter(param_prefix_ + ".topic", topic_);
     node_->declare_parameter<double>(param_prefix_ + ".qos", 10.0);
     node_->get_parameter(param_prefix_ + ".qos", qos_);
     pub_ = node_->create_publisher<MsgType>(topic_, qos_);
