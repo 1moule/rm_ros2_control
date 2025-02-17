@@ -19,7 +19,7 @@ public:
 
     // Initialize the ControllerManager
     controller_manager_ = std::make_shared<controller_manager::ControllerManager>(
-        executor, "controller_manager", std::string(this->get_name()) + "aaa", rclcpp::NodeOptions());
+        executor, "controller_manager", get_namespace(), rclcpp::NodeOptions());
 
     // Get controllers
     this->declare_parameter<std::vector<std::string>>("controllers.main_controllers", std::vector<std::string>());
