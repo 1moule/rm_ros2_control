@@ -38,7 +38,7 @@ private:
     for (const auto& controller : controllers)
     {
       auto load_client =
-          node_->create_client<controller_manager_msgs::srv::LoadController>("controller_manager/load_controller");
+          node_->create_client<controller_manager_msgs::srv::LoadController>("/controller_manager/load_controller");
       auto load_request = std::make_shared<controller_manager_msgs::srv::LoadController::Request>();
       load_request->name = controller;
       if (load_client->wait_for_service(std::chrono::seconds(10)))
@@ -55,7 +55,7 @@ private:
     {
       // Configure the controller
       auto configure_client = node_->create_client<controller_manager_msgs::srv::ConfigureController>(
-          "controller_manager/configure_controller");
+          "/controller_manager/configure_controller");
       auto configure_request = std::make_shared<controller_manager_msgs::srv::ConfigureController::Request>();
       configure_request->name = controller;
       if (configure_client->wait_for_service(std::chrono::seconds(10)))
@@ -73,7 +73,7 @@ private:
   {
     // Switch the controller to active mode
     auto switch_client =
-        node_->create_client<controller_manager_msgs::srv::SwitchController>("controller_manager/switch_controller");
+        node_->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
     auto switch_request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
     switch_request->activate_controllers = controllers;
     switch_request->strictness = controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
@@ -93,7 +93,7 @@ private:
   {
     // Switch the controller to active mode
     auto switch_client =
-        node_->create_client<controller_manager_msgs::srv::SwitchController>("controller_manager/switch_controller");
+        node_->create_client<controller_manager_msgs::srv::SwitchController>("/controller_manager/switch_controller");
     auto switch_request = std::make_shared<controller_manager_msgs::srv::SwitchController::Request>();
     switch_request->deactivate_controllers = controllers;
     switch_request->strictness = controller_manager_msgs::srv::SwitchController::Request::BEST_EFFORT;
