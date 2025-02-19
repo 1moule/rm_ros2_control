@@ -36,12 +36,14 @@ file(GLOB FILTERS "include/rm_ros2_common/filters/*")
 file(GLOB TOOLS "include/rm_ros2_common/tools/*")
 list(REMOVE_ITEM DECISION "include/rm_ros2_common/decision/bullet_solver/*")
 list(REMOVE_ITEM FILTER "include/rm_ros2_common/filters/complementary_filter.hpp")
+list(REMOVE_ITEM FILTER "include/rm_ros2_common/filters/lp_filter.hpp")
 add_library(${PROJECT_NAME} SHARED
         ${DECISION}
         ${FILTERS}
         ${TOOLS}
         src/decision/bullet_solver/bullet_solver.cpp
         src/filters/complementary_filter.cpp
+        src/filters/lp_filter.cpp
 )
 target_include_directories(${PROJECT_NAME} PUBLIC
         $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
