@@ -14,13 +14,6 @@ class ControllerManager final : public rclcpp::Node
 public:
   ControllerManager() : Node("controller_manager")
   {
-    // Create an executor
-    auto executor = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-
-    // Initialize the ControllerManager
-    controller_manager_ = std::make_shared<controller_manager::ControllerManager>(
-        executor, "controller_manager", get_namespace(), rclcpp::NodeOptions());
-
     // Get controllers
     this->declare_parameter<std::vector<std::string>>("controllers.main_controllers", std::vector<std::string>());
     this->get_parameter("controllers.main_controllers", main_controllers_);
