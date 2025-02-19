@@ -61,7 +61,8 @@ public:
    * \param bus_name Bus's name(example: can0).
    * \param data_ptr Pointer which point to CAN data.
    */
-  CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_priority);
+  CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_priority,
+         const std::shared_ptr<rclcpp::Logger>& logger, const rclcpp::Clock::SharedPtr& clock);
   /** \brief Read active data from read_buffer_ to data_ptr_, such as position, velocity, torque and so on. Clear
    * read_buffer_ after reading.
    *
@@ -74,6 +75,16 @@ public:
   void write();
 
   void write(can_frame* frame);
+
+  rclcpp::Logger get_logger() const
+  {
+    return *logger_;
+  }
+
+  rclcpp::Clock::SharedPtr get_clock() const
+  {
+    return clock_;
+  }
 
   const std::string bus_name_;
 
@@ -92,6 +103,9 @@ private:
   can_frame rm_frame1_{};  // for id 0x205~0x208
 
   mutable std::mutex mutex_;
+
+  std::shared_ptr<rclcpp::Logger> logger_;
+  rclcpp::Clock::SharedPtr clock_;
 };
 
 }  // namespace rm_hw
