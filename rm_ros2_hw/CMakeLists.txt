@@ -28,6 +28,7 @@ endforeach ()
 
 add_library(${PROJECT_NAME} SHARED
         src/hardware.cpp
+        src/hardware_interface/socketcan.cpp
 )
 
 target_include_directories(

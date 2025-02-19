@@ -14,6 +14,10 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
     return CallbackReturn::ERROR;
 
+  logger_ = std::make_shared<rclcpp::Logger>(
+      rclcpp::get_logger("controller_manager.resource_manager.hardware_component.rm_system"));
+  clock_ = std::make_shared<rclcpp::Clock>(rclcpp::Clock());
+
   for (const auto& joint : info_.joints)
   {
     for (const auto& interface : joint.state_interfaces)

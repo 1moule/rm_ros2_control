@@ -8,6 +8,8 @@
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
+#include "rclcpp/clock.hpp"
+#include "rclcpp/logger.hpp"
 
 namespace rm_ros2_hw
 {
@@ -22,6 +24,14 @@ public:
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
   hardware_interface::return_type read(const rclcpp::Time& time, const rclcpp::Duration& period) override;
   hardware_interface::return_type write(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/) override;
+  rclcpp::Logger get_logger() const
+  {
+    return *logger_;
+  }
+  rclcpp::Clock::SharedPtr get_clock() const
+  {
+    return clock_;
+  }
 
 protected:
   /// The size of this vector is (standard_interfaces_.size() x nr_joints)
@@ -33,5 +43,7 @@ protected:
   std::unordered_map<std::string, std::vector<std::string>> joint_interfaces = { { "position", {} },
                                                                                  { "velocity", {} },
                                                                                  { "effort", {} } };
+  std::shared_ptr<rclcpp::Logger> logger_;
+  rclcpp::Clock::SharedPtr clock_;
 };
 };  // namespace rm_ros2_hw
