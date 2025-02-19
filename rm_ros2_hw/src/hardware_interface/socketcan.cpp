@@ -34,7 +34,7 @@
 //
 // Created by qiayuan on 3/3/21.
 //
-#include "rm_ros2_hw//hardware_interface/socketcan.h"
+#include "rm_ros2_hw/hardware_interface/socketcan.hpp"
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <utility>

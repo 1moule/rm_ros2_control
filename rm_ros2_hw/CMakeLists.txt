@@ -18,6 +18,7 @@ endif ()
 set(CONTROLLER_INCLUDE_DEPENDS
         hardware_interface
         pluginlib
+        rm_ros2_common
 )
 
 # Find dependencies
@@ -29,6 +30,7 @@ endforeach ()
 add_library(${PROJECT_NAME} SHARED
         src/hardware.cpp
         src/hardware_interface/socketcan.cpp
+        src/hardware_interface/can_bus.cpp
 )
 
 target_include_directories(
