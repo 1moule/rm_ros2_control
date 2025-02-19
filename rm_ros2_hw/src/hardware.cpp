@@ -9,7 +9,7 @@
 
 namespace rm_ros2_hw
 {
-CallbackReturn Hardware::on_init(const hardware_interface::HardwareInfo& info)
+CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo& info)
 {
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
     return CallbackReturn::ERROR;
@@ -29,7 +29,7 @@ CallbackReturn Hardware::on_init(const hardware_interface::HardwareInfo& info)
   return CallbackReturn::SUCCESS;
 }
 
-std::vector<hardware_interface::StateInterface> Hardware::export_state_interfaces()
+std::vector<hardware_interface::StateInterface> RmSystemHardware::export_state_interfaces()
 {
   std::vector<hardware_interface::StateInterface> state_interfaces;
 
@@ -54,7 +54,7 @@ std::vector<hardware_interface::StateInterface> Hardware::export_state_interface
   return state_interfaces;
 }
 
-std::vector<hardware_interface::CommandInterface> Hardware::export_command_interfaces()
+std::vector<hardware_interface::CommandInterface> RmSystemHardware::export_command_interfaces()
 {
   std::vector<hardware_interface::CommandInterface> command_interfaces;
 
@@ -67,18 +67,18 @@ std::vector<hardware_interface::CommandInterface> Hardware::export_command_inter
   return command_interfaces;
 }
 
-hardware_interface::return_type Hardware::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
+hardware_interface::return_type RmSystemHardware::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
 {
-  // std::cout << "Hardware::read()" << std::endl;
+  std::cout << "Hardware::read()" << std::endl;
 
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type Hardware::write(const rclcpp::Time&, const rclcpp::Duration&)
+hardware_interface::return_type RmSystemHardware::write(const rclcpp::Time&, const rclcpp::Duration&)
 {
-  // std::cout << "Hardware::write()" << std::endl;
+  std::cout << "Hardware::write()" << std::endl;
   return hardware_interface::return_type::OK;
 }
 }  // namespace rm_ros2_hw
 
-PLUGINLIB_EXPORT_CLASS(rm_ros2_hw::Hardware, hardware_interface::SystemInterface)
+PLUGINLIB_EXPORT_CLASS(rm_ros2_hw::RmSystemHardware, hardware_interface::SystemInterface)

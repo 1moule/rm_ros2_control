@@ -13,10 +13,10 @@ namespace rm_ros2_hw
 {
 using CallbackReturn = rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn;
 
-class Hardware final : public hardware_interface::SystemInterface
+class RmSystemHardware final : public hardware_interface::SystemInterface
 {
 public:
-  Hardware() = default;
+  RmSystemHardware() = default;
   CallbackReturn on_init(const hardware_interface::HardwareInfo& info) override;
   std::vector<hardware_interface::StateInterface> export_state_interfaces() override;
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
