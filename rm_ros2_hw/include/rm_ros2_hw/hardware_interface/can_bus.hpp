@@ -44,7 +44,7 @@
 #include <mutex>
 #include <thread>
 
-namespace rm_hw
+namespace rm_ros2_hw
 {
 struct CanFrameStamp
 {
@@ -106,6 +106,7 @@ private:
 
   std::shared_ptr<rclcpp::Logger> logger_;
   rclcpp::Clock::SharedPtr clock_;
+  rclcpp::Time last_update_stamp_;
 };
 
-}  // namespace rm_hw
+}  // namespace rm_ros2_hw

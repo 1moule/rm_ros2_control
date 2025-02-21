@@ -17,6 +17,7 @@ endif ()
 
 set(CONTROLLER_INCLUDE_DEPENDS
         hardware_interface
+        transmission_interface
         pluginlib
         rm_ros2_common
 )

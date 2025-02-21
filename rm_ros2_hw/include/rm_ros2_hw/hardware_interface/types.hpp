@@ -38,12 +38,12 @@
 #pragma once
 
 #include <string>
-//#include <rm_common/filters/lp_filter.h>
-//#include <rm_common/filters/imu_filter_base.h>
+#include <rm_ros2_common/filters/lp_filter.hpp>
+#include <rm_ros2_common/filters/complementary_filter.hpp>
 #include <unordered_map>
 #include <rclcpp/rclcpp.hpp>
 
-namespace rm_hw
+namespace rm_ros2_hw
 {
 struct ActCoeff
 {
@@ -68,7 +68,7 @@ struct ActData
   double cmd_pos, cmd_vel, cmd_effort, exe_effort;
   double offset;
   // For multiple cycle under absolute encoder (RoboMaster motor)
-//  LowPassFilter* lp_filter;
+  std::unique_ptr<LowPassFilter> lp_filter;
 };
 
 struct ImuData
@@ -82,13 +82,7 @@ struct ImuData
   double temperature, angular_vel_coeff, accel_coeff, temp_coeff, temp_offset;
   bool accel_updated, gyro_updated, camera_trigger;
   bool enabled_trigger;
-//  rm_common::ImuFilterBase* imu_filter;
-};
-
-struct TofData
-{
-  double strength;
-  double distance;
+  std::unique_ptr<imu_tools::ComplementaryFilter> imu_filter;
 };
 
 struct CanDataPtr
@@ -96,6 +90,5 @@ struct CanDataPtr
   std::unordered_map<std::string, ActCoeff>* type2act_coeffs_;
   std::unordered_map<int, ActData>* id2act_data_;
   std::unordered_map<int, ImuData>* id2imu_data_;
-  std::unordered_map<int, TofData>* id2tof_data_;
 };
-}  // namespace rm_hw
+}  // namespace rm_ros2_hw
