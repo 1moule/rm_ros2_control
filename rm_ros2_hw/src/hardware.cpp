@@ -14,15 +14,23 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
     return CallbackReturn::ERROR;
 
-  logger_ = std::make_shared<rclcpp::Logger>(
-      rclcpp::get_logger("controller_manager.resource_manager.hardware_component.rm_system"));
+  logger_ = std::make_shared<rclcpp::Logger>(rclcpp::get_logger("RmSystemHardware"));
   clock_ = std::make_shared<rclcpp::Clock>(rclcpp::Clock());
 
+  for (const auto& param : info_.hardware_parameters)
+  {
+    if (param.first.find("can") != std::string::npos)
+    {
+      can_buses_.push_back(std::make_unique<CanBus>(param.second,
+                                                    CanDataPtr{ &type2act_coeffs_, &bus_id2act_data_[param.second],
+                                                                &bus_id2imu_data_[param.second] },
+                                                    99, logger_, clock_));
+    }
+  }
   for (const auto& joint : info_.joints)
   {
     for (const auto& interface : joint.state_interfaces)
       joint_interfaces[interface.name].push_back(joint.name);
-    std::cout << joint.name << std::endl;
   }
 
   joint_position_.resize(info_.joints.size(), 0.);
@@ -71,16 +79,39 @@ std::vector<hardware_interface::CommandInterface> RmSystemHardware::export_comma
   return command_interfaces;
 }
 
-hardware_interface::return_type RmSystemHardware::read(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/)
+hardware_interface::return_type RmSystemHardware::read(const rclcpp::Time& time, const rclcpp::Duration& /*period*/)
 {
-  std::cout << "Hardware::read()" << std::endl;
-
+  for (auto& bus : can_buses_)
+    bus->read(time);
+  for (auto& id2act_datas : bus_id2act_data_)
+    for (auto& act_data : id2act_datas.second)
+    {
+      try
+      {  // Duration will be out of dual 32-bit range while motor failure
+        act_data.second.halted = (time - act_data.second.stamp).seconds() > 0.1 || act_data.second.temp > 99;
+      }
+      catch (std::runtime_error& ex)
+      {
+      }
+      if (act_data.second.halted)
+      {
+        act_data.second.seq = 0;
+        act_data.second.vel = 0;
+        act_data.second.effort = 0;
+        act_data.second.calibrated = false;  // set the actuator no calibrated
+      }
+    }
+  // if (is_actuator_specified_)
+  //   act_to_jnt_state_->propagate();
+  // // Set all cmd to zero to avoid crazy soft limit oscillation when not controller loaded
+  // for (auto effort_joint_handle : joint_effort_command_)
+  //   effort_joint_handle = 0.;
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type RmSystemHardware::write(const rclcpp::Time&, const rclcpp::Duration&)
 {
-  std::cout << "Hardware::write()" << std::endl;
+  // std::cout << "Hardware::write()" << std::endl;
   return hardware_interface::return_type::OK;
 }
 }  // namespace rm_ros2_hw

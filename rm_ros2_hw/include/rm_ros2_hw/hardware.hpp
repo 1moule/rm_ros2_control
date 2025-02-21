@@ -10,6 +10,7 @@
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
 #include "rclcpp/clock.hpp"
 #include "rclcpp/logger.hpp"
+#include "rm_ros2_hw/hardware_interface/can_bus.hpp"
 
 namespace rm_ros2_hw
 {
@@ -45,5 +46,15 @@ protected:
                                                                                  { "effort", {} } };
   std::shared_ptr<rclcpp::Logger> logger_;
   rclcpp::Clock::SharedPtr clock_;
+
+  std::vector<std::unique_ptr<CanBus>> can_buses_{};
+
+  // Actuator
+  std::unordered_map<std::string, ActCoeff> type2act_coeffs_{};
+  std::unordered_map<std::string, std::unordered_map<int, ActData>> bus_id2act_data_{};
+
+  // Imu
+  std::unordered_map<std::string, std::unordered_map<int, ImuData>> bus_id2imu_data_{};
+  bool is_actuator_specified_ = false;
 };
 };  // namespace rm_ros2_hw
