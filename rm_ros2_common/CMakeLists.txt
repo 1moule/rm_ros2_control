@@ -35,8 +35,8 @@ file(GLOB DECISION "include/rm_ros2_common/decision/*")
 file(GLOB FILTERS "include/rm_ros2_common/filters/*")
 file(GLOB TOOLS "include/rm_ros2_common/tools/*")
 list(REMOVE_ITEM DECISION "include/rm_ros2_common/decision/bullet_solver/*")
-list(REMOVE_ITEM FILTER "include/rm_ros2_common/filters/complementary_filter.hpp")
-list(REMOVE_ITEM FILTER "include/rm_ros2_common/filters/lp_filter.hpp")
+list(REMOVE_ITEM FILTERS "include/rm_ros2_common/filters/complementary_filter.hpp")
+list(REMOVE_ITEM FILTERS "include/rm_ros2_common/filters/lp_filter.hpp")
 add_library(${PROJECT_NAME} SHARED
         ${DECISION}
         ${FILTERS}
