@@ -59,7 +59,7 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   }
   for (const auto& param : info_.hardware_parameters)
   {
-    if (param.first.find("can") != std::string::npos)
+    if (param.first.find("bus") != std::string::npos)
     {
       can_buses_.push_back(std::make_unique<CanBus>(param.second,
                                                     CanDataPtr{ &type2act_coeffs_, &bus_id2act_data_[param.second],
@@ -135,11 +135,7 @@ hardware_interface::return_type RmSystemHardware::read(const rclcpp::Time& time,
         act_data.second.calibrated = false;  // set the actuator no calibrated
       }
     }
-  // if (is_actuator_specified_)
-  //   act_to_jnt_state_->propagate();
-  // // Set all cmd to zero to avoid crazy soft limit oscillation when not controller loaded
-  // for (auto effort_joint_handle : joint_effort_command_)
-  //   effort_joint_handle = 0.;
+
   return hardware_interface::return_type::OK;
 }
 
