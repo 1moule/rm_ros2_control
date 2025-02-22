@@ -29,6 +29,40 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   }
   for (const auto& joint : info_.joints)
   {
+    if (joint.parameters.find("bus") != joint.parameters.end() &&
+        joint.parameters.find("id") != joint.parameters.end() &&
+        joint.parameters.find("type") != joint.parameters.end())
+    {
+      int id;
+      std::stringstream(joint.parameters.at("id")) >> id;
+      std::string bus = joint.parameters.at("bus");
+      std::string type = joint.parameters.at("type");
+      bus_id2act_data_[bus].insert(std::make_pair(id, ActData{ joint.name,
+                                                               type,
+                                                               get_clock()->now(),
+                                                               false,
+                                                               false,
+                                                               false,
+                                                               false,
+                                                               false,
+                                                               0,
+                                                               0,
+                                                               0,
+                                                               0,
+                                                               0,
+                                                               0.,
+                                                               0,
+                                                               0.,
+                                                               0.,
+                                                               0.,
+                                                               0.,
+                                                               0.,
+                                                               0.,
+                                                               0.,
+                                                               std::make_unique<LowPassFilter>(100.0) }));
+    }
+    else
+      RCLCPP_ERROR(get_logger(), "Joint %s need to designate: bus id type", joint.name.c_str());
     for (const auto& interface : joint.state_interfaces)
       joint_interfaces[interface.name].push_back(joint.name);
   }
