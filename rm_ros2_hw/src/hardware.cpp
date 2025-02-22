@@ -17,16 +17,7 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   logger_ = std::make_shared<rclcpp::Logger>(rclcpp::get_logger("RmSystemHardware"));
   clock_ = std::make_shared<rclcpp::Clock>(rclcpp::Clock());
 
-  for (const auto& param : info_.hardware_parameters)
-  {
-    if (param.first.find("can") != std::string::npos)
-    {
-      can_buses_.push_back(std::make_unique<CanBus>(param.second,
-                                                    CanDataPtr{ &type2act_coeffs_, &bus_id2act_data_[param.second],
-                                                                &bus_id2imu_data_[param.second] },
-                                                    99, logger_, clock_));
-    }
-  }
+  parse_act_coeff(type2act_coeffs_);
   for (const auto& joint : info_.joints)
   {
     if (joint.parameters.find("bus") != joint.parameters.end() &&
@@ -66,7 +57,16 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
     for (const auto& interface : joint.state_interfaces)
       joint_interfaces[interface.name].push_back(joint.name);
   }
-
+  for (const auto& param : info_.hardware_parameters)
+  {
+    if (param.first.find("can") != std::string::npos)
+    {
+      can_buses_.push_back(std::make_unique<CanBus>(param.second,
+                                                    CanDataPtr{ &type2act_coeffs_, &bus_id2act_data_[param.second],
+                                                                &bus_id2imu_data_[param.second] },
+                                                    99, logger_, clock_));
+    }
+  }
   joint_position_.resize(info_.joints.size(), 0.);
   joint_velocities_.resize(info_.joints.size(), 0.);
   joint_efforts_.resize(info_.joints.size(), 0.);
@@ -147,6 +147,18 @@ hardware_interface::return_type RmSystemHardware::write(const rclcpp::Time&, con
 {
   // std::cout << "Hardware::write()" << std::endl;
   return hardware_interface::return_type::OK;
+}
+
+void RmSystemHardware::parse_act_coeff(std::unordered_map<std::string, ActCoeff>& type2act_coeffs)
+{
+  type2act_coeffs.insert(std::make_pair("rm_3508", ActCoeff{ 0.0007669903, 0.1047197551, 1.90702994e-5, 0., 0.,
+                                                             52437.561519, 16384, 0., 0., 0., 0., 0. }));
+  type2act_coeffs.insert(std::make_pair("rm_6020", ActCoeff{ 0.0007670840, 0.1047197551, 5.880969e-5, 0., 0., 25000,
+                                                             30000, 0., 0., 0., 0., 0. }));
+  type2act_coeffs.insert(std::make_pair("rm_2006", ActCoeff{ 2.13078897e-5, 0.0029088820, 0.00018, 0., 0., 5555.5555555,
+                                                             10000, 0., 0., 0., 0., 0. }));
+  type2act_coeffs.insert(std::make_pair("cheetah", ActCoeff{ 3.81475547e-4, 0.0317446031, 0.008791208, 2621.4, 31.5,
+                                                             113.75, 0., -12.5, -65.0, -18.0, 8.19, 819 }));
 }
 }  // namespace rm_ros2_hw
 

@@ -33,6 +33,7 @@ public:
   {
     return clock_;
   }
+  static void parse_act_coeff(std::unordered_map<std::string, ActCoeff>& type2act_coeffs);
 
 protected:
   /// The size of this vector is (standard_interfaces_.size() x nr_joints)
