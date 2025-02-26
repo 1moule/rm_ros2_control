@@ -27,14 +27,6 @@ public:
   std::vector<hardware_interface::CommandInterface> export_command_interfaces() override;
   hardware_interface::return_type read(const rclcpp::Time& time, const rclcpp::Duration& period) override;
   hardware_interface::return_type write(const rclcpp::Time& /*time*/, const rclcpp::Duration& /*period*/) override;
-  rclcpp::Logger get_logger() const
-  {
-    return *logger_;
-  }
-  rclcpp::Clock::SharedPtr get_clock() const
-  {
-    return clock_;
-  }
 
 protected:
   static void parse_act_coeff(std::unordered_map<std::string, ActCoeff>& type2act_coeffs);
@@ -48,8 +40,6 @@ protected:
   std::unordered_map<std::string, std::vector<std::string>> joint_interfaces = { { "position", {} },
                                                                                  { "velocity", {} },
                                                                                  { "effort", {} } };
-  std::shared_ptr<rclcpp::Logger> logger_;
-  rclcpp::Clock::SharedPtr clock_;
 
   std::vector<std::unique_ptr<CanBus>> can_buses_{};
 

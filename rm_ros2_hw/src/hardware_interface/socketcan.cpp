@@ -46,10 +46,6 @@ namespace can
  * http://blog.mbedded.ninja/programming/operating-systems/linux/how-to-use-socketcan-with-c-in-linux
  * https://github.com/linux-can/can-utils/blob/master/candump.c
  */
-SocketCAN::SocketCAN(const std::shared_ptr<rclcpp::Logger>& logger, const rclcpp::Clock::SharedPtr& clock)
-  : logger_(logger), clock_(clock)
-{
-}
 
 SocketCAN::~SocketCAN()
 {
@@ -65,7 +61,7 @@ bool SocketCAN::open(const std::string& interface, boost::function<void(const ca
   sock_fd_ = socket(PF_CAN, SOCK_RAW, CAN_RAW);
   if (sock_fd_ == -1)
   {
-    RCLCPP_ERROR(get_logger(), "Error: Unable to create a CAN socket");
+    RCLCPP_ERROR(rclcpp::get_logger("RmSystemHardware"), "Error: Unable to create a CAN socket");
     return false;
   }
   char name[16] = {};  // avoid stringop-truncation
@@ -74,7 +70,7 @@ bool SocketCAN::open(const std::string& interface, boost::function<void(const ca
   // Get the index of the network interface
   if (ioctl(sock_fd_, SIOCGIFINDEX, &interface_request_) == -1)
   {
-    RCLCPP_ERROR(get_logger(), "Unable to select CAN interface %s: I/O control error", name);
+    RCLCPP_ERROR(rclcpp::get_logger("RmSystemHardware"), "Unable to select CAN interface %s: I/O control error", name);
     // Invalidate unusable socket
     close();
     return false;
@@ -85,7 +81,7 @@ bool SocketCAN::open(const std::string& interface, boost::function<void(const ca
   int rc = bind(sock_fd_, reinterpret_cast<struct sockaddr*>(&address_), sizeof(address_));
   if (rc == -1)
   {
-    RCLCPP_ERROR(get_logger(), "Failed to bind socket to %s network interface", name);
+    RCLCPP_ERROR(rclcpp::get_logger("RmSystemHardware"), "Failed to bind socket to %s network interface", name);
     close();
     return false;
   }
@@ -115,13 +111,13 @@ void SocketCAN::write(can_frame* frame) const
 {
   if (!isOpen())
   {
-    RCLCPP_ERROR_THROTTLE(get_logger(), *get_clock(), 1000, "Unable to write: Socket %s not open",
+    RCLCPP_ERROR_THROTTLE(rclcpp::get_logger("RmSystemHardware"), *clock_, 1000, "Unable to write: Socket %s not open",
                           interface_request_.ifr_name);
     return;
   }
   if (::write(sock_fd_, frame, sizeof(can_frame)) == -1)
-    RCLCPP_DEBUG_THROTTLE(get_logger(), *get_clock(), 1000, "Unable to write: The %s tx buffer may be full",
-                          interface_request_.ifr_name);
+    RCLCPP_DEBUG_THROTTLE(rclcpp::get_logger("RmSystemHardware"), *clock_, 1000,
+                          "Unable to write: The %s tx buffer may be full", interface_request_.ifr_name);
 }
 
 static void* socketcan_receiver_thread(void* argv)
@@ -170,10 +166,11 @@ bool SocketCAN::startReceiverThread(int thread_priority)
   int rc = pthread_create(&receiver_thread_id_, nullptr, &socketcan_receiver_thread, this);
   if (rc != 0)
   {
-    RCLCPP_ERROR(get_logger(), "Unable to start receiver thread");
+    RCLCPP_ERROR(rclcpp::get_logger("RmSystemHardware"), "Unable to start receiver thread");
     return false;
   }
-  RCLCPP_INFO(get_logger(), "Successfully started receiver thread with ID %lu", receiver_thread_id_);
+  RCLCPP_INFO(rclcpp::get_logger("RmSystemHardware"), "Successfully started receiver thread with ID %lu",
+              receiver_thread_id_);
   sched_param sched{ .sched_priority = thread_priority };
   pthread_setschedparam(receiver_thread_id_, SCHED_FIFO, &sched);
   return true;

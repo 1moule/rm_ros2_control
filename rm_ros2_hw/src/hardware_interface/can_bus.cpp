@@ -41,9 +41,8 @@
 #include <rm_ros2_common/tools/math_tools.hpp>
 namespace rm_ros2_hw
 {
-CanBus::CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_priority,
-               const std::shared_ptr<rclcpp::Logger>& logger, const rclcpp::Clock::SharedPtr& clock)
-  : bus_name_(bus_name), socket_can_(logger, clock), data_ptr_(data_ptr), logger_(logger), clock_(clock)
+CanBus::CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_priority)
+  : bus_name_(bus_name), data_ptr_(data_ptr)
 {
   // Initialize device at can_device, false for no loop back.
   rclcpp::Rate rate(0.5);
@@ -51,7 +50,7 @@ CanBus::CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_prio
          rclcpp::ok())
     rate.sleep();
 
-  RCLCPP_INFO(get_logger(), "Successfully connected to %s.", bus_name.c_str());
+  RCLCPP_INFO(rclcpp::get_logger("RmSystemHardware"), "Successfully connected to %s.", bus_name.c_str());
   last_update_stamp_ = rclcpp::Clock().now();
   // Set up CAN package header
   rm_frame0_.can_id = 0x200;
@@ -254,8 +253,9 @@ void CanBus::read(rclcpp::Time /*time*/)
       continue;
     }
     if (frame.can_id != 0x0)
-      RCLCPP_ERROR_STREAM_ONCE(get_logger(), "Can not find defined device, id: 0x" << std::hex << frame.can_id
-                                                                                   << " on bus: " << bus_name_);
+      RCLCPP_ERROR_STREAM_ONCE(rclcpp::get_logger("RmSystemHardware"), "Can not find defined device, id: 0x"
+                                                                           << std::hex << frame.can_id
+                                                                           << " on bus: " << bus_name_);
   }
   read_buffer_.clear();
 }

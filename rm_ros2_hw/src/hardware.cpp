@@ -14,9 +14,6 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   if (hardware_interface::SystemInterface::on_init(info) != CallbackReturn::SUCCESS)
     return CallbackReturn::ERROR;
 
-  logger_ = std::make_shared<rclcpp::Logger>(rclcpp::get_logger("RmSystemHardware"));
-  clock_ = std::make_shared<rclcpp::Clock>(rclcpp::Clock());
-
   parse_act_coeff(type2act_coeffs_);
   for (const auto& joint : info_.joints)
   {
@@ -53,7 +50,8 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
                                                                std::make_unique<LowPassFilter>(100.0) }));
     }
     else
-      RCLCPP_ERROR(get_logger(), "Joint %s need to designate: bus id type", joint.name.c_str());
+      RCLCPP_ERROR(rclcpp::get_logger("RmSystemHardware"), "Joint %s need to designate: bus id type",
+                   joint.name.c_str());
     for (const auto& interface : joint.state_interfaces)
       joint_interfaces[interface.name].push_back(joint.name);
   }
@@ -61,10 +59,9 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   {
     if (param.first.find("bus") != std::string::npos)
     {
-      can_buses_.push_back(std::make_unique<CanBus>(param.second,
-                                                    CanDataPtr{ &type2act_coeffs_, &bus_id2act_data_[param.second],
-                                                                &bus_id2imu_data_[param.second] },
-                                                    99, logger_, clock_));
+      can_buses_.push_back(std::make_unique<CanBus>(
+          param.second,
+          CanDataPtr{ &type2act_coeffs_, &bus_id2act_data_[param.second], &bus_id2imu_data_[param.second] }, 99));
     }
   }
   joint_position_.resize(info_.joints.size(), 0.);

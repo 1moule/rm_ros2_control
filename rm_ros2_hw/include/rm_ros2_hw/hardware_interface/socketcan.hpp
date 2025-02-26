@@ -52,7 +52,6 @@ private:
   ifreq interface_request_{};
   sockaddr_can address_{};
   pthread_t receiver_thread_id_{};
-  std::shared_ptr<rclcpp::Logger> logger_;
   rclcpp::Clock::SharedPtr clock_;
 
 public:
@@ -66,7 +65,10 @@ public:
   bool terminate_receiver_thread_ = false;
   bool receiver_thread_running_ = false;
 
-  SocketCAN(const std::shared_ptr<rclcpp::Logger>& logger, const rclcpp::Clock::SharedPtr& clock);
+  SocketCAN()
+  {
+    clock_ = std::make_shared<rclcpp::Clock>(rclcpp::Clock());
+  }
   ~SocketCAN();
 
   /** \brief Open and bind socket.
@@ -99,14 +101,6 @@ public:
    * Pointer to a function which shall be called
    * when frames are being received from the CAN bus
    */
-  rclcpp::Logger get_logger() const
-  {
-    return *logger_;
-  }
-  rclcpp::Clock::SharedPtr get_clock() const
-  {
-    return clock_;
-  }
   boost::function<void(const can_frame& frame)> reception_handler;
 };
 
