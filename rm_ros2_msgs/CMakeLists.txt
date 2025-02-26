@@ -18,6 +18,7 @@ find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
+        "msg/ActuatorState.msg"
         "msg/BulletSolverState.msg"
         "msg/ChassisCmd.msg"
         "msg/DbusData.msg"
