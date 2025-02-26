@@ -30,7 +30,7 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
       std::string type = joint.parameters.at("type");
       bus_id2act_data_[bus].insert(std::make_pair(id, ActData{ joint.name,
                                                                type,
-                                                               get_clock()->now(),
+                                                               rclcpp::Clock().now(),
                                                                false,
                                                                false,
                                                                false,
@@ -71,6 +71,12 @@ CallbackReturn RmSystemHardware::on_init(const hardware_interface::HardwareInfo&
   joint_velocities_.resize(info_.joints.size(), 0.);
   joint_efforts_.resize(info_.joints.size(), 0.);
   joint_effort_command_.resize(info_.joints.size(), 0.);
+
+  node_ = std::make_shared<rclcpp::Node>("actuator_state_pub");
+  actuator_state_pub_ =
+      node_->create_publisher<rm_ros2_msgs::msg::ActuatorState>("actuator_state", rclcpp::SystemDefaultsQoS());
+  actuator_state_pub_rt_ =
+      std::make_shared<realtime_tools::RealtimePublisher<rm_ros2_msgs::msg::ActuatorState>>(actuator_state_pub_);
 
   return CallbackReturn::SUCCESS;
 }
@@ -139,9 +145,10 @@ hardware_interface::return_type RmSystemHardware::read(const rclcpp::Time& time,
   return hardware_interface::return_type::OK;
 }
 
-hardware_interface::return_type RmSystemHardware::write(const rclcpp::Time&, const rclcpp::Duration&)
+hardware_interface::return_type RmSystemHardware::write(const rclcpp::Time& time, const rclcpp::Duration&)
 {
   // std::cout << "Hardware::write()" << std::endl;
+  publishActuatorState(time);
   return hardware_interface::return_type::OK;
 }
 
@@ -155,6 +162,41 @@ void RmSystemHardware::parse_act_coeff(std::unordered_map<std::string, ActCoeff>
                                                              10000, 0., 0., 0., 0., 0. }));
   type2act_coeffs.insert(std::make_pair("cheetah", ActCoeff{ 3.81475547e-4, 0.0317446031, 0.008791208, 2621.4, 31.5,
                                                              113.75, 0., -12.5, -65.0, -18.0, 8.19, 819 }));
+}
+
+void RmSystemHardware::publishActuatorState(const rclcpp::Time& /*time*/)
+{
+  if (actuator_state_pub_rt_->trylock())
+  {
+    rm_ros2_msgs::msg::ActuatorState actuator_state;
+    for (const auto& id2act_datas : bus_id2act_data_)
+      for (const auto& act_data : id2act_datas.second)
+      {
+        actuator_state.stamp.push_back(act_data.second.stamp);
+        actuator_state.name.push_back(act_data.second.name);
+        actuator_state.type.push_back(act_data.second.type);
+        actuator_state.bus.push_back(id2act_datas.first);
+        actuator_state.id.push_back(act_data.first);
+        actuator_state.halted.push_back(act_data.second.halted);
+        actuator_state.need_calibration.push_back(act_data.second.need_calibration);
+        actuator_state.calibrated.push_back(act_data.second.calibrated);
+        actuator_state.calibration_reading.push_back(act_data.second.calibration_reading);
+        actuator_state.position_raw.push_back(act_data.second.q_raw);
+        actuator_state.velocity_raw.push_back(act_data.second.qd_raw);
+        actuator_state.temperature.push_back(act_data.second.temp);
+        actuator_state.circle.push_back(act_data.second.q_circle);
+        actuator_state.last_position_raw.push_back(act_data.second.q_last);
+        actuator_state.frequency.push_back(act_data.second.frequency);
+        actuator_state.position.push_back(act_data.second.pos);
+        actuator_state.velocity.push_back(act_data.second.vel);
+        actuator_state.effort.push_back(act_data.second.effort);
+        actuator_state.commanded_effort.push_back(act_data.second.cmd_effort);
+        actuator_state.executed_effort.push_back(act_data.second.exe_effort);
+        actuator_state.offset.push_back(act_data.second.offset);
+      }
+    actuator_state_pub_rt_->msg_ = actuator_state;
+    actuator_state_pub_rt_->unlockAndPublish();
+  }
 }
 }  // namespace rm_ros2_hw
 

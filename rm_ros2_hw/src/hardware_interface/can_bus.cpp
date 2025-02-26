@@ -52,7 +52,7 @@ CanBus::CanBus(const std::string& bus_name, CanDataPtr data_ptr, int thread_prio
     rate.sleep();
 
   RCLCPP_INFO(get_logger(), "Successfully connected to %s.", bus_name.c_str());
-  last_update_stamp_ = get_clock()->now();
+  last_update_stamp_ = rclcpp::Clock().now();
   // Set up CAN package header
   rm_frame0_.can_id = 0x200;
   rm_frame0_.can_dlc = 8;
@@ -120,7 +120,7 @@ void CanBus::write()
     socket_can_.write(&rm_frame1_);
 }
 
-void CanBus::read(rclcpp::Time time)
+void CanBus::read(rclcpp::Time /*time*/)
 {
   std::lock_guard<std::mutex> guard(mutex_);
 
@@ -133,6 +133,7 @@ void CanBus::read(rclcpp::Time time)
   for (const auto& frame_stamp : read_buffer_)
   {
     can_frame frame = frame_stamp.frame;
+    frame.can_id -= 312;
     // Check if robomaster motor
     if (data_ptr_.id2act_data_->find(frame.can_id) != data_ptr_.id2act_data_->end())
     {
@@ -267,7 +268,7 @@ void CanBus::write(can_frame* frame)
 void CanBus::frameCallback(const can_frame& frame)
 {
   std::lock_guard<std::mutex> guard(mutex_);
-  CanFrameStamp can_frame_stamp{ .frame = frame, .stamp = get_clock()->now() };
+  CanFrameStamp can_frame_stamp{ frame, rclcpp::Clock().now() };
   read_buffer_.push_back(can_frame_stamp);
 }
 
