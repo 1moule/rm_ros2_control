@@ -213,6 +213,13 @@ hardware_interface::return_type RmSystemHardware::write(const rclcpp::Time& time
           // Set the command effort and executed effort
           act_data.second.cmd_effort = joint_effort_command_[effort_cmd_index];
           act_data.second.exe_effort = joint_effort_command_[effort_cmd_index];
+          // For Cheetah motors, also set position and velocity commands to current values for now
+          // as they use position and velocity in the write logic
+          if (act_data.second.type.find("cheetah") != std::string::npos)
+          {
+            act_data.second.cmd_pos = act_data.second.pos;
+            act_data.second.cmd_vel = act_data.second.vel;
+          }
           break;
         }
       }
