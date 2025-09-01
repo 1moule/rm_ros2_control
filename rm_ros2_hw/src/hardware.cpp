@@ -142,12 +142,88 @@ hardware_interface::return_type RmSystemHardware::read(const rclcpp::Time& time,
       }
     }
 
+  // Transfer actuator state data to joint state variables
+  int pos_index = 0;
+  for (const auto& joint_name : joint_interfaces["position"])
+  {
+    for (const auto& bus_data : bus_id2act_data_)
+    {
+      for (const auto& act_data : bus_data.second)
+      {
+        if (act_data.second.name == joint_name)
+        {
+          joint_position_[pos_index] = act_data.second.pos;
+          break;
+        }
+      }
+    }
+    pos_index++;
+  }
+
+  int vel_index = 0;
+  for (const auto& joint_name : joint_interfaces["velocity"])
+  {
+    for (const auto& bus_data : bus_id2act_data_)
+    {
+      for (const auto& act_data : bus_data.second)
+      {
+        if (act_data.second.name == joint_name)
+        {
+          joint_velocities_[vel_index] = act_data.second.vel;
+          break;
+        }
+      }
+    }
+    vel_index++;
+  }
+
+  int effort_index = 0;
+  for (const auto& joint_name : joint_interfaces["effort"])
+  {
+    for (const auto& bus_data : bus_id2act_data_)
+    {
+      for (const auto& act_data : bus_data.second)
+      {
+        if (act_data.second.name == joint_name)
+        {
+          joint_efforts_[effort_index] = act_data.second.effort;
+          break;
+        }
+      }
+    }
+    effort_index++;
+  }
+
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type RmSystemHardware::write(const rclcpp::Time& time, const rclcpp::Duration&)
 {
-  // std::cout << "Hardware::write()" << std::endl;
+  // Transfer joint effort commands to actuator data
+  int effort_cmd_index = 0;
+  for (const auto& joint_name : joint_interfaces["effort"])
+  {
+    // Find the corresponding actuator data for this joint
+    for (auto& bus_data : bus_id2act_data_)
+    {
+      for (auto& act_data : bus_data.second)
+      {
+        if (act_data.second.name == joint_name)
+        {
+          // Set the command effort and executed effort
+          act_data.second.cmd_effort = joint_effort_command_[effort_cmd_index];
+          act_data.second.exe_effort = joint_effort_command_[effort_cmd_index];
+          break;
+        }
+      }
+    }
+    effort_cmd_index++;
+  }
+
+  // Send commands to all CAN buses
+  for (auto& bus : can_buses_)
+    bus->write();
+
   publishActuatorState(time);
   return hardware_interface::return_type::OK;
 }
