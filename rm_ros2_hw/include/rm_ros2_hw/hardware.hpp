@@ -8,11 +8,13 @@
 #include "hardware_interface/hardware_info.hpp"
 #include "hardware_interface/system_interface.hpp"
 #include "hardware_interface/types/hardware_interface_return_values.hpp"
-#include "rclcpp/clock.hpp"
-#include "rclcpp/logger.hpp"
+#include "hardware_interface/types/hardware_interface_type_values.hpp"
+#include "transmission_interface/transmission.hpp"
+#include "transmission_interface/simple_transmission_loader.hpp"
+#include "transmission_interface/transmission_interface_exception.hpp"
+#include "realtime_tools/realtime_publisher.hpp"
 #include "rm_ros2_hw/hardware_interface/can_bus.hpp"
 #include "rm_ros2_msgs/msg/actuator_state.hpp"
-#include "realtime_tools/realtime_publisher.hpp"
 
 namespace rm_ros2_hw
 {
@@ -31,16 +33,21 @@ public:
 protected:
   static void parse_act_coeff(std::unordered_map<std::string, ActCoeff>& type2act_coeffs);
   void publishActuatorState(const rclcpp::Time& time);
-  /// The size of this vector is (standard_interfaces_.size() x nr_joints)
-  std::vector<double> joint_effort_command_;
-  std::vector<double> joint_position_;
-  std::vector<double> joint_velocities_;
-  std::vector<double> joint_efforts_;
 
-  std::unordered_map<std::string, std::vector<std::string>> joint_interfaces = { { "position", {} },
-                                                                                 { "velocity", {} },
-                                                                                 { "effort", {} } };
+  struct InterfaceData
+  {
+    explicit InterfaceData(const std::string& name) : name_(name)
+    {
+    }
+    std::string name_;
+    std::array<double, 3> state_{ 0, 0, 0 };
+    std::array<double, 3> command_{ 0, 0, 0 };
+    std::array<double, 3> transmissionPassthrough_{ 0, 0, 0 };
+  };
 
+  std::vector<InterfaceData> joint_interfaces_;
+  std::vector<InterfaceData> actuator_interfaces_;
+  std::vector<std::shared_ptr<transmission_interface::Transmission>> transmissions_;
   std::vector<std::unique_ptr<CanBus>> can_buses_{};
 
   // Actuator
