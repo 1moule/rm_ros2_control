@@ -34,7 +34,7 @@
 //
 // Created by qiayuan on 12/28/20.
 //
-#include "rm_ros2_hw//hardware_interface/can_bus.hpp"
+#include "rm_ros2_hw/hardware_interface/can_bus.hpp"
 
 #include <string>
 #include <rclcpp/rclcpp.hpp>
